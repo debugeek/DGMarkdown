@@ -17,6 +17,10 @@ public struct DGMarkdown {
         queue.async {
             let document = Document(parsing: text)
             
+            #if DEBUG
+            print(document.debugDescription())
+            #endif
+            
             var visitor = Visitor()
             let result = visitor.visit(document)
             

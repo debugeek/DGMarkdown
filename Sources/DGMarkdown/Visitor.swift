@@ -21,6 +21,9 @@ struct Visitor {
             case 3: style = .h3
             default: style = .h4
             }
+        case is Emphasis: style = .emphasis
+        case is Strong: style = .strong
+        case is Strikethrough: style = .strikethrough
         default: style = .body
         }
         
@@ -29,6 +32,7 @@ struct Visitor {
             .paragraphStyle: style.paragraphStyle,
             .foregroundColor: style.foregroundColor,
             .backgroundColor: style.backgroundColor,
+            .strikethroughStyle: style.strikethrough
         ])
         
         switch markup {
