@@ -11,24 +11,11 @@ import Markdown
 
 struct Style {
 
-    let font: NSFont
-    let paragraphStyle: NSParagraphStyle
-    let foregroundColor: NSColor
-    let backgroundColor: NSColor
-    let strikethrough: Bool
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle = .init()
+    var foregroundColor: NSColor = .textColor
+    var backgroundColor: NSColor = .clear
     
-    init(font: NSFont,
-         paragraphStyle: NSParagraphStyle = .init(),
-         foregroundColor: NSColor = .textColor,
-         backgroundColor: NSColor = .clear,
-         strikethrough: Bool = false) {
-        self.font = font
-        self.paragraphStyle = paragraphStyle
-        self.foregroundColor = foregroundColor
-        self.backgroundColor = backgroundColor
-        self.strikethrough = strikethrough
-    }
-
 }
 
 extension Style {
@@ -49,8 +36,12 @@ extension Style {
         return Style(font: NSFont.systemFont(ofSize: 20, weight: .medium))
     }
     
-    static var body: Style {
+    static var text: Style {
         return Style(font: NSFont.systemFont(ofSize: 16))
+    }
+    
+    static var link: Style {
+        return Style(font: NSFont.systemFont(ofSize: 16, weight: .light))
     }
     
     static var emphasis: Style {
@@ -62,8 +53,12 @@ extension Style {
     }
     
     static var strikethrough: Style {
+        return Style(font: NSFont.systemFont(ofSize: 16))
+    }
+    
+    static var inlineCode: Style {
         return Style(font: NSFont.systemFont(ofSize: 16),
-                     strikethrough: true)
+                     backgroundColor: .gray)
     }
     
 }

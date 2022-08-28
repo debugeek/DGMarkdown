@@ -11,68 +11,128 @@ import Markdown
 
 struct Visitor {
     
-    private func transform(string: String, markup: Markup) -> Result {
-        let style: Style
-        switch markup.parent ?? markup {
-        case let heading as Heading:
-            switch heading.level {
-            case 1: style = .h1
-            case 2: style = .h2
-            case 3: style = .h3
-            default: style = .h4
-            }
-        case is Emphasis: style = .emphasis
-        case is Strong: style = .strong
-        case is Strikethrough: style = .strikethrough
-        default: style = .body
-        }
-        
-        let attributedString = NSMutableAttributedString(string: string, attributes: [
-            .font: style.font,
-            .paragraphStyle: style.paragraphStyle,
-            .foregroundColor: style.foregroundColor,
-            .backgroundColor: style.backgroundColor,
-            .strikethroughStyle: style.strikethrough
-        ])
-        
-        switch markup {
-        case let link as Link:
-            if let destination = link.destination, let url = URL(string: destination) {
-                attributedString.addAttribute(.link, value: url, range: NSRange(location: 0, length: string.count))
-            }
-            
-        default: break
-        }
-        
-        attributedString.append(NSAttributedString(string: "\n"))
-        
-        return attributedString
-    }
-    
 }
 
 extension Visitor: MarkupVisitor {
     
-    mutating func defaultVisit(_ markup: Markup) -> NSAttributedString {
-        transform(string: markup.format(), markup: markup)
-    }
-    
     typealias Result = NSAttributedString
     
-    public mutating func visit(_ markup: Markup) -> Result {
-        guard markup.childCount > 0 else {
-            return markup.accept(&self)
+    mutating func defaultVisit(_ markup: Markup) -> NSAttributedString {
+        return markup.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+    }
+    
+    func visitText(_ text: Text) -> NSAttributedString {
+        let style = Style.text
+        return NSAttributedString(string: text.plainText, attributes: [
+            .font: style.font
+        ])
+    }
+    
+    func visitInlineCode(_ inlineCode: InlineCode) -> NSAttributedString {
+        let style = Style.inlineCode
+        return NSAttributedString(string: inlineCode.code, attributes: [
+            .font: style.font,
+            .foregroundColor: style.foregroundColor,
+            .backgroundColor: style.backgroundColor
+        ])
+    }
+    
+    mutating func visitParagraph(_ paragraph: Paragraph) -> NSAttributedString {
+        let attributedString = paragraph.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+        attributedString.append(NSAttributedString(string: "\n"))
+        return attributedString
+    }
+    
+    mutating func visitHeading(_ heading: Heading) -> NSAttributedString {
+        let attributedString = heading.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+        
+        let style: Style
+        switch heading.level {
+        case 1: style = .h1
+        case 2: style = .h2
+        case 3: style = .h3
+        default: style = .h4
+        }
+        attributedString.addAttribute(.font, value: style.font, range: NSRange(location: 0, length: attributedString.length))
+        
+        attributedString.append(NSAttributedString(string: "\n"))
+        return attributedString
+    }
+    
+    mutating func visitEmphasis(_ emphasis: Emphasis) -> NSAttributedString {
+        let attributedString = emphasis.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+        attributedString.enumerateAttribute(.font, in: NSRange(location: 0, length: attributedString.length), options: []) { value, range, stop in
+            let font = value as? NSFont ?? Style.emphasis.font
+            attributedString.addAttribute(.font, value: font.italic(), range: range)
+        }
+        return attributedString
+    }
+    
+    mutating func visitStrong(_ strong: Strong) -> NSAttributedString {
+        let attributedString = strong.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+        attributedString.enumerateAttribute(.font, in: NSRange(location: 0, length: attributedString.length), options: []) { value, range, stop in
+            let font = value as? NSFont ?? Style.strong.font
+            attributedString.addAttribute(.font, value: font.bold(), range: range)
+        }
+        return attributedString
+    }
+    
+    mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> NSAttributedString {
+        let attributedString = strikethrough.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+        attributedString.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: attributedString.length))
+        return attributedString
+    }
+    
+    mutating func visitLink(_ link: Link) -> NSAttributedString {
+        let attributedString = link.children
+            .compactMap { visit($0) }
+            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+    
+        if let destination = link.destination, let link = URL(string: destination) {
+            attributedString.addAttribute(.link, value: link, range: NSRange(location: 0, length: attributedString.length))
         }
         
-        return markup.children.compactMap { child -> Result in
-            if child is Text {
-                return child.accept(&self)
-            } else {
-                return visit(child)
-            }
-        }.reduce(into: NSMutableAttributedString()) { partialResult, attributedString in
-            partialResult.append(attributedString)
-        }
+        return attributedString
+    }
+    
+    func visitLineBreak(_ lineBreak: LineBreak) -> NSAttributedString {
+        return NSAttributedString(string: "\n")
+    }
+    
+    func visitSoftBreak(_ softBreak: SoftBreak) -> NSAttributedString {
+        return NSAttributedString(string: "\n")
+    }
+    
+}
+
+extension NSFont {
+    
+    func withTraits(_ traits: NSFontDescriptor.SymbolicTraits) -> NSFont {
+        var symbolicTraits = fontDescriptor.symbolicTraits
+        symbolicTraits.insert(traits)
+        
+        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits)
+        return NSFont(descriptor: descriptor, size: 0)!
+    }
+
+    func bold() -> NSFont {
+        return withTraits(.bold)
+    }
+
+    func italic() -> NSFont {
+        return withTraits(.italic)
     }
     
 }
