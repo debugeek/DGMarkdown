@@ -25,18 +25,31 @@ extension Visitor: MarkupVisitor {
     
     func visitText(_ text: Text) -> NSAttributedString {
         let style = Style.text
-        return NSAttributedString(string: text.plainText, attributes: [
-            .font: style.font
-        ])
+        return NSAttributedString(string: text.plainText,
+                                  attributes: [
+                                    .font: style.font,
+                                    .foregroundColor: style.foregroundColor
+                                  ])
     }
     
     func visitInlineCode(_ inlineCode: InlineCode) -> NSAttributedString {
         let style = Style.inlineCode
-        return NSAttributedString(string: inlineCode.code, attributes: [
-            .font: style.font,
-            .foregroundColor: style.foregroundColor,
-            .backgroundColor: style.backgroundColor
-        ])
+        return NSAttributedString(string: inlineCode.code,
+                                  attributes: [
+                                    .font: style.font,
+                                    .foregroundColor: style.foregroundColor,
+                                    .backgroundColor: style.backgroundColor
+                                  ])
+    }
+    
+    func visitCodeBlock(_ codeBlock: CodeBlock) -> NSAttributedString {
+        let style = Style.codeBlock
+        return NSMutableAttributedString(string: codeBlock.code,
+                                         attributes: [
+                                            .font: style.font,
+                                            .foregroundColor: style.foregroundColor,
+                                            .backgroundColor: style.backgroundColor
+                                         ])
     }
     
     mutating func visitParagraph(_ paragraph: Paragraph) -> NSAttributedString {
@@ -124,7 +137,7 @@ extension NSFont {
         symbolicTraits.insert(traits)
         
         let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits)
-        return NSFont(descriptor: descriptor, size: 0)!
+        return NSFont(descriptor: descriptor, size: 0) ?? self
     }
 
     func bold() -> NSFont {

@@ -58,7 +58,12 @@ extension Style {
     
     static var inlineCode: Style {
         return Style(font: NSFont.systemFont(ofSize: 16),
-                     backgroundColor: .gray)
+                     backgroundColor: .lightGray)
+    }
+    
+    static var codeBlock: Style {
+        return Style(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                     backgroundColor: .lightGray)
     }
     
 }
