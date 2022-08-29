@@ -30,7 +30,7 @@ extension ViewController: NSTextViewDelegate {
     
     func textDidChange(_ notification: Notification) {
         DGMarkdown.parse(editTextView.string) { attributedString in
-            self.previewTextView.textStorage?.setAttributedString(attributedString)
+            self.previewTextView.textStorage?.setAttributedString(NSAttributedString(attributedString))
         }
     }
     

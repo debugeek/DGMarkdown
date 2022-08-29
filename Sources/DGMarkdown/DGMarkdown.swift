@@ -13,7 +13,7 @@ public struct DGMarkdown {
     
     private static let queue = DispatchQueue(label: "com.debugeek.markdown")
     
-    public static func parse(_ text: String, using block: @escaping (NSAttributedString) -> Void) {
+    public static func parse(_ text: String, using block: @escaping (AttributedString) -> Void) {
         queue.async {
             let document = Document(parsing: text)
             

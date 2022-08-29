@@ -37,7 +37,7 @@ extension Style {
     }
     
     static var text: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16))
+        return Style(font: NSFont.systemFont(ofSize: 16, weight: .light))
     }
     
     static var link: Style {
@@ -57,7 +57,7 @@ extension Style {
     }
     
     static var inlineCode: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16),
+        return Style(font: NSFont.monospacedSystemFont(ofSize: 11, weight: .regular),
                      backgroundColor: .lightGray)
     }
     

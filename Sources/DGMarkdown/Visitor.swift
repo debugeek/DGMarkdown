@@ -6,7 +6,7 @@
 //  Copyright © 2022 debugeek. All rights reserved.
 //
 
-import Cocoa
+import Foundation
 import Markdown
 
 struct Visitor {
@@ -15,137 +15,107 @@ struct Visitor {
 
 extension Visitor: MarkupVisitor {
     
-    typealias Result = NSAttributedString
+    typealias Result = AttributedString
     
-    mutating func defaultVisit(_ markup: Markup) -> NSAttributedString {
+    mutating func defaultVisit(_ markup: Markup) -> AttributedString {
         return markup.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
+            .reduce(into: AttributedString()) { $0.append($1) }
     }
     
-    func visitText(_ text: Text) -> NSAttributedString {
-        let style = Style.text
-        return NSAttributedString(string: text.plainText,
-                                  attributes: [
-                                    .font: style.font,
-                                    .foregroundColor: style.foregroundColor
-                                  ])
+    func visitText(_ text: Text) -> AttributedString {
+        var string = AttributedString(text.plainText)
+        string.font = Style.text.font
+        string.foregroundColor = Style.text.foregroundColor
+        return string
     }
     
-    func visitInlineCode(_ inlineCode: InlineCode) -> NSAttributedString {
-        let style = Style.inlineCode
-        return NSAttributedString(string: inlineCode.code,
-                                  attributes: [
-                                    .font: style.font,
-                                    .foregroundColor: style.foregroundColor,
-                                    .backgroundColor: style.backgroundColor
-                                  ])
+    func visitInlineCode(_ inlineCode: InlineCode) -> AttributedString {
+        var string = AttributedString(inlineCode.code)
+        string.font = Style.inlineCode.font
+        string.foregroundColor = Style.inlineCode.foregroundColor
+        string.backgroundColor = Style.inlineCode.backgroundColor
+        return string
     }
     
-    func visitCodeBlock(_ codeBlock: CodeBlock) -> NSAttributedString {
-        let style = Style.codeBlock
-        return NSMutableAttributedString(string: codeBlock.code,
-                                         attributes: [
-                                            .font: style.font,
-                                            .foregroundColor: style.foregroundColor,
-                                            .backgroundColor: style.backgroundColor
-                                         ])
+    func visitCodeBlock(_ codeBlock: CodeBlock) -> AttributedString {
+        var string = AttributedString(codeBlock.code)
+        string.font = Style.codeBlock.font
+        string.foregroundColor = Style.codeBlock.foregroundColor
+        string.backgroundColor = Style.codeBlock.backgroundColor
+        string.inlinePresentationIntent = .code
+        string.languageIdentifier = codeBlock.language
+        return string
     }
     
-    mutating func visitParagraph(_ paragraph: Paragraph) -> NSAttributedString {
-        let attributedString = paragraph.children
+    mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
+        return paragraph.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-        attributedString.append(NSAttributedString(string: "\n"))
-        return attributedString
+            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
     }
     
-    mutating func visitHeading(_ heading: Heading) -> NSAttributedString {
-        let attributedString = heading.children
+    mutating func visitHeading(_ heading: Heading) -> AttributedString {
+        return heading.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-        
-        let style: Style
-        switch heading.level {
-        case 1: style = .h1
-        case 2: style = .h2
-        case 3: style = .h3
-        default: style = .h4
+            .reduce(into: AttributedString()) { $0.append($1) }
+            .transformingAttributes(\.font) { transformer in
+                let style: Style
+                switch heading.level {
+                case 1: style = .h1
+                case 2: style = .h2
+                case 3: style = .h3
+                default: style = .h4
+                }
+                transformer.value = style.font
+            } + "\n"
+    }
+    
+    mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {
+        return emphasis.children
+            .compactMap { visit($0) }
+            .reduce(into: AttributedString()) { $0.append($1) }
+            .transformingAttributes(\.font) { transformer in
+            transformer.value = Style.emphasis.font
         }
-        attributedString.addAttribute(.font, value: style.font, range: NSRange(location: 0, length: attributedString.length))
-        
-        attributedString.append(NSAttributedString(string: "\n"))
-        return attributedString
     }
     
-    mutating func visitEmphasis(_ emphasis: Emphasis) -> NSAttributedString {
-        let attributedString = emphasis.children
+    mutating func visitStrong(_ strong: Strong) -> AttributedString {
+        return strong.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-        attributedString.enumerateAttribute(.font, in: NSRange(location: 0, length: attributedString.length), options: []) { value, range, stop in
-            let font = value as? NSFont ?? Style.emphasis.font
-            attributedString.addAttribute(.font, value: font.italic(), range: range)
+            .reduce(into: AttributedString()) { $0.append($1) }
+            .transformingAttributes(\.font) { transformer in
+            transformer.value = Style.strong.font
         }
-        return attributedString
     }
     
-    mutating func visitStrong(_ strong: Strong) -> NSAttributedString {
-        let attributedString = strong.children
+    mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> AttributedString {
+        var string = strikethrough.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-        attributedString.enumerateAttribute(.font, in: NSRange(location: 0, length: attributedString.length), options: []) { value, range, stop in
-            let font = value as? NSFont ?? Style.strong.font
-            attributedString.addAttribute(.font, value: font.bold(), range: range)
-        }
-        return attributedString
+            .reduce(into: AttributedString()) { $0.append($1) }
+        string.strikethroughStyle = .single
+        return string
     }
     
-    mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> NSAttributedString {
-        let attributedString = strikethrough.children
+    mutating func visitLink(_ link: Link) -> AttributedString {
+        var string = link.children
             .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-        attributedString.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: attributedString.length))
-        return attributedString
-    }
-    
-    mutating func visitLink(_ link: Link) -> NSAttributedString {
-        let attributedString = link.children
-            .compactMap { visit($0) }
-            .reduce(into: NSMutableAttributedString()) { $0.append($1) }
-    
+            .reduce(into: AttributedString()) { $0.append($1) }
         if let destination = link.destination, let link = URL(string: destination) {
-            attributedString.addAttribute(.link, value: link, range: NSRange(location: 0, length: attributedString.length))
+            string.link = link
         }
-        
-        return attributedString
+        return string
     }
     
-    func visitLineBreak(_ lineBreak: LineBreak) -> NSAttributedString {
-        return NSAttributedString(string: "\n")
+    func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
+        var string = AttributedString("\n")
+        string.inlinePresentationIntent = .lineBreak
+        return string
     }
     
-    func visitSoftBreak(_ softBreak: SoftBreak) -> NSAttributedString {
-        return NSAttributedString(string: "\n")
-    }
-    
-}
-
-extension NSFont {
-    
-    func withTraits(_ traits: NSFontDescriptor.SymbolicTraits) -> NSFont {
-        var symbolicTraits = fontDescriptor.symbolicTraits
-        symbolicTraits.insert(traits)
-        
-        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits)
-        return NSFont(descriptor: descriptor, size: 0) ?? self
-    }
-
-    func bold() -> NSFont {
-        return withTraits(.bold)
-    }
-
-    func italic() -> NSFont {
-        return withTraits(.italic)
+    func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
+        var string = AttributedString("\n")
+        string.inlinePresentationIntent = .softBreak
+        return string
     }
     
 }
