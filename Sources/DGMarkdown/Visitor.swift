@@ -118,4 +118,39 @@ extension Visitor: MarkupVisitor {
         return string
     }
     
+    mutating func visitListItem(_ listItem: ListItem) -> AttributedString {
+        var depth = 1
+        var parent = listItem.parent
+        while parent != nil {
+            if parent is ListItem {
+                depth += 1
+            }
+            parent = parent?.parent
+        }
+        
+        let prefix: String
+        if listItem.parent is OrderedList {
+            prefix = "\(listItem.indexInParent + 1)."
+        } else {
+            prefix = "•"
+        }
+        
+        let spacing = String(repeating: " ", count: 2*depth)
+        var string = AttributedString("\(spacing)\(prefix) ")
+        string += listItem.children
+            .compactMap { visit($0) }
+            .reduce(into: AttributedString()) { $0.append($1) }
+        
+        let style: Style
+        switch depth {
+        case 1: style = .listItem1
+        case 2: style = .listItem2
+        case 3: style = .listItem3
+        default: style = .listItem4
+        }
+        string.font = style.font
+        string.foregroundColor = style.foregroundColor
+        return string
+    }
+    
 }

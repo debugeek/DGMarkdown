@@ -66,4 +66,20 @@ extension Style {
                      backgroundColor: .lightGray)
     }
     
+    static var listItem1: Style {
+        return Style(font: NSFont.systemFont(ofSize: 16, weight: .medium))
+    }
+    
+    static var listItem2: Style {
+        return Style(font: NSFont.systemFont(ofSize: 22, weight: .medium))
+    }
+    
+    static var listItem3: Style {
+        return Style(font: NSFont.systemFont(ofSize: 12, weight: .medium))
+    }
+    
+    static var listItem4: Style {
+        return Style(font: NSFont.systemFont(ofSize: 10, weight: .medium))
+    }
+    
 }
