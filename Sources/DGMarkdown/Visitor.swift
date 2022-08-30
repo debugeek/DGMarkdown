@@ -152,5 +152,12 @@ extension Visitor: MarkupVisitor {
         string.foregroundColor = style.foregroundColor
         return string
     }
+
+    func visitThematicBreak(_ thematicBreak: ThematicBreak) -> AttributedString {
+        var string = AttributedString("\n \u{00a0} \u{0009} \u{00a0} \n")
+        string.strikethroughStyle = .thick
+        string.strikethroughColor = Style.thematicBreak.foregroundColor
+        return string
+    }
     
 }

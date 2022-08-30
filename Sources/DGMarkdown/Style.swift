@@ -71,7 +71,7 @@ extension Style {
     }
     
     static var listItem2: Style {
-        return Style(font: NSFont.systemFont(ofSize: 22, weight: .medium))
+        return Style(font: NSFont.systemFont(ofSize: 14, weight: .medium))
     }
     
     static var listItem3: Style {
@@ -80,6 +80,11 @@ extension Style {
     
     static var listItem4: Style {
         return Style(font: NSFont.systemFont(ofSize: 10, weight: .medium))
+    }
+    
+    static var thematicBreak: Style {
+        return Style(font: NSFont.systemFont(ofSize: 16),
+                     foregroundColor: .lightGray)
     }
     
 }
