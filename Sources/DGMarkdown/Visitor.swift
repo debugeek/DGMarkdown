@@ -10,7 +10,7 @@ import Foundation
 import Markdown
 
 struct Visitor {
-    
+        
 }
 
 extension Visitor: MarkupVisitor {
@@ -154,10 +154,69 @@ extension Visitor: MarkupVisitor {
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> AttributedString {
-        var string = AttributedString("\n \u{00a0} \u{0009} \u{00a0} \n")
-        string.strikethroughStyle = .thick
+        var string = AttributedString("\n \u{00a0} \n")
+        string.strikethroughStyle = .single
         string.strikethroughColor = Style.thematicBreak.foregroundColor
         return string
     }
     
+    mutating func visitTable(_ table: Table) -> AttributedString {
+        return "\n" + table.children
+            .compactMap { visit($0) }
+            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
+    }
+    
+    mutating func visitTableHead(_ tableHead: Table.Head) -> AttributedString {
+        return tableHead.children
+            .compactMap { visit($0) }
+            .reduce(into: AttributedString()) { $0.append($1) }
+            .transformingAttributes(\.font) { transformer in
+                transformer.value = Style.tableHead.font
+            }
+    }
+    
+    mutating func visitTableCell(_ tableCell: Table.Cell) -> AttributedString {
+        var parent = tableCell.parent
+        while parent != nil {
+            if parent is Table {
+                break
+            }
+            parent = parent?.parent
+        }
+        
+        var maxCharactersPerColumn = [Int: Int]()
+        if let table = parent as? Table {
+            for (column, cell) in table.head.cells.enumerated() {
+                maxCharactersPerColumn[column] = max(cell.plainText.count, maxCharactersPerColumn[column, default: 0])
+            }
+            for row in table.body.rows {
+                for (column, cell) in row.cells.enumerated() {
+                    maxCharactersPerColumn[column] = max(cell.plainText.count, maxCharactersPerColumn[column, default: 0])
+                }
+            }
+        }
+        maxCharactersPerColumn = maxCharactersPerColumn.mapValues { value in
+            return value + 2
+        }
+        
+        let maxCharacters = maxCharactersPerColumn[tableCell.indexInParent, default: 0]
+        let totalPadding = maxCharacters - tableCell.plainText.count
+        let heading = AttributedString(String(repeating: " ", count: totalPadding/2))
+        let tailing = AttributedString(String(repeating: " ", count: totalPadding/2 + (totalPadding%2 == 0 ? 0 : 1)))
+        
+        var string = tableCell.children
+            .compactMap { heading + visit($0) + tailing }
+            .reduce(into: AttributedString()) { $0.append($1) }
+            .transformingAttributes(\.font) { transformer in
+                transformer.value = Style.tableCell.font
+            }
+        
+        if tableCell.parent?.childCount == tableCell.indexInParent + 1 {
+            string += "\n"
+        }
+        
+        return string
+    }
+    
 }
+

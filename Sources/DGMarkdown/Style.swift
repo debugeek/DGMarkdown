@@ -87,4 +87,12 @@ extension Style {
                      foregroundColor: .lightGray)
     }
     
+    static var tableHead: Style {
+        return Style(font: NSFont.monospacedSystemFont(ofSize: 14, weight: .medium))
+    }
+    
+    static var tableCell: Style {
+        return Style(font: NSFont.monospacedSystemFont(ofSize: 14, weight: .thin))
+    }
+    
 }
