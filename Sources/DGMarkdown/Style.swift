@@ -95,4 +95,9 @@ extension Style {
         return Style(font: NSFont.monospacedSystemFont(ofSize: 14, weight: .thin))
     }
     
+    static var blockQuote: Style {
+        return Style(font: NSFontManager.shared.convert(NSFont.systemFont(ofSize: 16), toHaveTrait: .italicFontMask),
+                     foregroundColor: .textColor)
+    }
+    
 }

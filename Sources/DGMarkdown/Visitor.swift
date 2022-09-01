@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Cocoa
 import Markdown
 
 struct Visitor {
@@ -217,6 +218,24 @@ extension Visitor: MarkupVisitor {
         
         return string
     }
-    
+   
+    mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
+        var heading = AttributedString("❝ ")
+        heading.font = NSFont.systemFont(ofSize: 40)
+        heading.foregroundColor = Style.blockQuote.foregroundColor
+        
+        var string = blockQuote.children
+            .compactMap { visit($0) }
+            .reduce(into: AttributedString()) { $0.append($1) }
+        string.font = Style.blockQuote.font
+        string.foregroundColor = Style.blockQuote.foregroundColor
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 6
+        string.paragraphStyle = paragraphStyle
+        
+        return heading + string
+    }
+
 }
 
