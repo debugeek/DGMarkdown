@@ -236,6 +236,23 @@ extension Visitor: MarkupVisitor {
         
         return heading + string
     }
+    
+    mutating func visitImage(_ image: Image) -> AttributedString {
+        guard let source = image.source else {
+            return AttributedString(image.plainText)
+        }
+        
+        let html = """
+        <img src="\(source)">
+        """
+        let data = Data(html.utf8)
+            
+        guard let attributedString = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
+            return AttributedString(image.plainText)
+        }
+        
+        return AttributedString(attributedString)
+    }
 
 }
 
