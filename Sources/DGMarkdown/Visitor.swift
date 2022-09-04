@@ -56,37 +56,34 @@ extension Visitor: MarkupVisitor {
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {
-        return heading.children
+        let style: Style
+        switch heading.level {
+        case 1: style = .h1
+        case 2: style = .h2
+        case 3: style = .h3
+        default: style = .h4
+        }
+        var string = heading.children
             .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
-            .transformingAttributes(\.font) { transformer in
-                let style: Style
-                switch heading.level {
-                case 1: style = .h1
-                case 2: style = .h2
-                case 3: style = .h3
-                default: style = .h4
-                }
-                transformer.value = style.font
-            } + "\n"
+            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
+        string.font = style.font
+        return string
     }
     
     mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {
-        return emphasis.children
+        var string = emphasis.children
             .compactMap { visit($0) }
             .reduce(into: AttributedString()) { $0.append($1) }
-            .transformingAttributes(\.font) { transformer in
-            transformer.value = Style.emphasis.font
-        }
+        string.inlinePresentationIntent = .emphasized
+        return string
     }
     
     mutating func visitStrong(_ strong: Strong) -> AttributedString {
-        return strong.children
+        var string = strong.children
             .compactMap { visit($0) }
             .reduce(into: AttributedString()) { $0.append($1) }
-            .transformingAttributes(\.font) { transformer in
-            transformer.value = Style.strong.font
-        }
+        string.font = Style.strong.font
+        return string
     }
     
     mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> AttributedString {
@@ -168,12 +165,11 @@ extension Visitor: MarkupVisitor {
     }
     
     mutating func visitTableHead(_ tableHead: Table.Head) -> AttributedString {
-        return tableHead.children
+        var string = tableHead.children
             .compactMap { visit($0) }
             .reduce(into: AttributedString()) { $0.append($1) }
-            .transformingAttributes(\.font) { transformer in
-                transformer.value = Style.tableHead.font
-            }
+        string.font = Style.tableHead.font
+        return string
     }
     
     mutating func visitTableCell(_ tableCell: Table.Cell) -> AttributedString {
@@ -208,9 +204,7 @@ extension Visitor: MarkupVisitor {
         var string = tableCell.children
             .compactMap { heading + visit($0) + tailing }
             .reduce(into: AttributedString()) { $0.append($1) }
-            .transformingAttributes(\.font) { transformer in
-                transformer.value = Style.tableCell.font
-            }
+        string.font = Style.tableCell.font
         
         if tableCell.parent?.childCount == tableCell.indexInParent + 1 {
             string += "\n"
