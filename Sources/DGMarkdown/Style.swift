@@ -9,95 +9,200 @@
 import Cocoa
 import Markdown
 
-struct Style {
-
-    var font: NSFont
-    var paragraphStyle: NSParagraphStyle = .init()
-    var foregroundColor: NSColor = .textColor
-    var backgroundColor: NSColor = .clear
+public struct Style {
+    
+    var document: DocumentStyle
+    
+    var text: TextStyle
+    var h1: HeadingStyle
+    var h2: HeadingStyle
+    var h3: HeadingStyle
+    var h4: HeadingStyle
+    var link: LinkStyle
+    var strong: StrongStyle
+    var inlineCode: InlineCodeStyle
+    var codeBlock: CodeBlockStyle
+    var listItem: ListItemStyle
+    var thematicBreak: ThematicBreakStyle
+    var tableHead: TableHeadStyle
+    var tableCell: TableCellStyle
+    var blockQuote: BlockQuoteStyle
+    
+    public init() {
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.lineSpacing = 6
+            paragraphStyle.paragraphSpacing = 12
+            document = DocumentStyle(paragraphStyle: paragraphStyle)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            text = TextStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                 paragraphStyle: paragraphStyle,
+                                 foregroundColor: .textColor)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            h1 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 32, weight: .heavy),
+                              paragraphStyle: paragraphStyle,
+                              foregroundColor: .textColor,
+                              lineBreakHeight: 14)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            h2 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 28, weight: .bold),
+                              paragraphStyle: paragraphStyle,
+                              foregroundColor: .textColor,
+                              lineBreakHeight: 10)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            h3 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 24, weight: .semibold),
+                              paragraphStyle: paragraphStyle,
+                              foregroundColor: .textColor,
+                              lineBreakHeight: 8)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            h4 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 20, weight: .medium),
+                              paragraphStyle: paragraphStyle,
+                              foregroundColor: .textColor,
+                              lineBreakHeight: 4)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            link = LinkStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .light),
+                             paragraphStyle: paragraphStyle,
+                             foregroundColor: .textColor)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            strong = StrongStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .bold),
+                                 paragraphStyle: paragraphStyle,
+                                 foregroundColor: .textColor)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            inlineCode = InlineCodeStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                         paragraphStyle: paragraphStyle,
+                                         foregroundColor: .textColor,
+                                         backgroundColor: .lightGray)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            codeBlock = CodeBlockStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                        paragraphStyle: paragraphStyle,
+                                        foregroundColor: .textColor,
+                                        backgroundColor: .lightGray)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            listItem = ListItemStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                      paragraphStyle: paragraphStyle,
+                                      foregroundColor: .textColor)
+        }
+        
+        do {
+            thematicBreak = ThematicBreakStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                               foregroundColor: .textColor)
+        }
+        
+        do {
+            tableHead = TableHeadStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular))
+        }
+        
+        do {
+            tableCell = TableCellStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular))
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.lineSpacing = 6
+            blockQuote = BlockQuoteStyle(font: NSFontManager.shared.convert(NSFont.monospacedSystemFont(ofSize: 16, weight: .regular), toHaveTrait: .italicFontMask),
+                                         paragraphStyle: paragraphStyle,
+                                         foregroundColor: .textColor,
+                                         backgroundColor: .clear)
+        }
+    }
     
 }
 
-extension Style {
+struct DocumentStyle {
+    var paragraphStyle: NSParagraphStyle
+}
 
-    static var h1: Style {
-        return Style(font: NSFont.systemFont(ofSize: 32, weight: .heavy))
-    }
+struct TextStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
     
-    static var h2: Style {
-        return Style(font: NSFont.systemFont(ofSize: 28, weight: .bold))
-    }
-    
-    static var h3: Style {
-        return Style(font: NSFont.systemFont(ofSize: 24, weight: .semibold))
-    }
-    
-    static var h4: Style {
-        return Style(font: NSFont.systemFont(ofSize: 20, weight: .medium))
-    }
-    
-    static var text: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16, weight: .light))
-    }
-    
-    static var link: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16, weight: .light))
-    }
-    
-    static var emphasis: Style {
-        return Style(font: NSFontManager.shared.convert(NSFont.systemFont(ofSize: 16), toHaveTrait: .italicFontMask))
-    }
-    
-    static var strong: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16, weight: .bold))
-    }
-    
-    static var strikethrough: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16))
-    }
-    
-    static var inlineCode: Style {
-        return Style(font: NSFont.monospacedSystemFont(ofSize: 11, weight: .regular),
-                     backgroundColor: .lightGray)
-    }
-    
-    static var codeBlock: Style {
-        return Style(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-                     backgroundColor: .lightGray)
-    }
-    
-    static var listItem1: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16, weight: .medium))
-    }
-    
-    static var listItem2: Style {
-        return Style(font: NSFont.systemFont(ofSize: 14, weight: .medium))
-    }
-    
-    static var listItem3: Style {
-        return Style(font: NSFont.systemFont(ofSize: 12, weight: .medium))
-    }
-    
-    static var listItem4: Style {
-        return Style(font: NSFont.systemFont(ofSize: 10, weight: .medium))
-    }
-    
-    static var thematicBreak: Style {
-        return Style(font: NSFont.systemFont(ofSize: 16),
-                     foregroundColor: .lightGray)
-    }
-    
-    static var tableHead: Style {
-        return Style(font: NSFont.monospacedSystemFont(ofSize: 14, weight: .medium))
-    }
-    
-    static var tableCell: Style {
-        return Style(font: NSFont.monospacedSystemFont(ofSize: 14, weight: .thin))
-    }
-    
-    static var blockQuote: Style {
-        return Style(font: NSFontManager.shared.convert(NSFont.systemFont(ofSize: 16), toHaveTrait: .italicFontMask),
-                     foregroundColor: .textColor)
-    }
-    
+}
+
+struct HeadingStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+    var lineBreakHeight: CGFloat
+}
+
+struct LinkStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+}
+
+struct StrongStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+}
+
+struct InlineCodeStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+    var backgroundColor: NSColor
+}
+
+struct CodeBlockStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+    var backgroundColor: NSColor
+}
+
+struct ListItemStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+}
+
+struct ThematicBreakStyle {
+    var font: NSFont
+    var foregroundColor: NSColor
+}
+
+struct TableHeadStyle {
+    var font: NSFont
+}
+
+struct TableCellStyle {
+    var font: NSFont
+}
+
+struct BlockQuoteStyle {
+    var font: NSFont
+    var paragraphStyle: NSParagraphStyle
+    var foregroundColor: NSColor
+    var backgroundColor: NSColor
 }

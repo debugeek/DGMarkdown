@@ -13,7 +13,7 @@ public struct DGMarkdown {
     
     private static let queue = DispatchQueue(label: "com.debugeek.markdown")
     
-    public static func parse(_ text: String, using block: @escaping (AttributedString) -> Void) {
+    public static func parse(text: String, style: Style, using block: @escaping (AttributedString) -> Void) {
         queue.async {
             let document = Document(parsing: text)
             
@@ -21,7 +21,7 @@ public struct DGMarkdown {
             print(document.debugDescription())
             #endif
             
-            var visitor = Visitor()
+            var visitor = Visitor(style: style)
             let result = visitor.visit(document)
             
             DispatchQueue.main.async {

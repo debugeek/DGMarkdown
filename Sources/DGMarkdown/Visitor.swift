@@ -11,7 +11,9 @@ import Cocoa
 import Markdown
 
 struct Visitor {
-        
+    
+    let style: Style
+    
 }
 
 extension Visitor: MarkupVisitor {
@@ -24,100 +26,105 @@ extension Visitor: MarkupVisitor {
             .reduce(into: AttributedString()) { $0.append($1) }
     }
     
+    mutating func visitDocument(_ document: Document) -> AttributedString {
+        var string = defaultVisit(document)
+        string.paragraphStyle = style.document.paragraphStyle
+        return "\n\n" + string + "\n"
+    }
+    
+    mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
+        return defaultVisit(paragraph) + "\n"
+    }
+    
+    mutating func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
+        var string = AttributedString("\n")
+        string.inlinePresentationIntent = .softBreak
+        return string
+    }
+    
+    mutating func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
+        var string = AttributedString("\n")
+        string.inlinePresentationIntent = .lineBreak
+        return string
+    }
+    
     func visitText(_ text: Text) -> AttributedString {
         var string = AttributedString(text.plainText)
-        string.font = Style.text.font
-        string.foregroundColor = Style.text.foregroundColor
+        string.font = style.text.font
+        string.paragraphStyle = style.text.paragraphStyle
+        string.foregroundColor = style.text.foregroundColor
         return string
     }
     
     func visitInlineCode(_ inlineCode: InlineCode) -> AttributedString {
         var string = AttributedString(inlineCode.code)
-        string.font = Style.inlineCode.font
-        string.foregroundColor = Style.inlineCode.foregroundColor
-        string.backgroundColor = Style.inlineCode.backgroundColor
+        string.font = style.inlineCode.font
+        string.paragraphStyle = style.inlineCode.paragraphStyle
+        string.foregroundColor = style.inlineCode.foregroundColor
+        string.backgroundColor = style.inlineCode.backgroundColor
+        string.inlinePresentationIntent = .code
         return string
     }
     
     func visitCodeBlock(_ codeBlock: CodeBlock) -> AttributedString {
         var string = AttributedString(codeBlock.code)
-        string.font = Style.codeBlock.font
-        string.foregroundColor = Style.codeBlock.foregroundColor
-        string.backgroundColor = Style.codeBlock.backgroundColor
-        string.inlinePresentationIntent = .code
+        string.font = style.codeBlock.font
+        string.paragraphStyle = style.codeBlock.paragraphStyle
+        string.foregroundColor = style.codeBlock.foregroundColor
+        string.backgroundColor = style.codeBlock.backgroundColor
         string.languageIdentifier = codeBlock.language
-        return string
-    }
-    
-    mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
-        return paragraph.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
+        return string + "\n"
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {
-        let style: Style
+        let headingStyle: HeadingStyle
         switch heading.level {
-        case 1: style = .h1
-        case 2: style = .h2
-        case 3: style = .h3
-        default: style = .h4
+        case 1: headingStyle = style.h1
+        case 2: headingStyle = style.h2
+        case 3: headingStyle = style.h3
+        default: headingStyle = style.h4
         }
-        var string = heading.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
-        string.font = style.font
+        var string = defaultVisit(heading)
+        string.font = headingStyle.font
+        string.paragraphStyle = headingStyle.paragraphStyle
+        string.foregroundColor = headingStyle.foregroundColor
+        
+        var spacing = AttributedString(" \n")
+        spacing.font = NSFont.systemFont(ofSize: headingStyle.lineBreakHeight)
+        string += spacing
+        
         return string
     }
     
     mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {
-        var string = emphasis.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
+        var string = defaultVisit(emphasis)
         string.inlinePresentationIntent = .emphasized
         return string
     }
     
     mutating func visitStrong(_ strong: Strong) -> AttributedString {
-        var string = strong.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
-        string.font = Style.strong.font
+        var string = defaultVisit(strong)
+        string.font = style.strong.font
         return string
     }
     
     mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> AttributedString {
-        var string = strikethrough.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
+        var string = defaultVisit(strikethrough)
+        string.inlinePresentationIntent = .strikethrough
         string.strikethroughStyle = .single
         return string
     }
     
     mutating func visitLink(_ link: Link) -> AttributedString {
-        var string = link.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
+        var string = defaultVisit(link)
         if let destination = link.destination, let link = URL(string: destination) {
             string.link = link
         }
         return string
     }
     
-    func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
-        var string = AttributedString("\n")
-        string.inlinePresentationIntent = .lineBreak
-        return string
-    }
-    
-    func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
-        var string = AttributedString("\n")
-        string.inlinePresentationIntent = .softBreak
-        return string
-    }
-    
     mutating func visitListItem(_ listItem: ListItem) -> AttributedString {
-        var depth = 1
+        var depth = 0
         var parent = listItem.parent
         while parent != nil {
             if parent is ListItem {
@@ -127,48 +134,47 @@ extension Visitor: MarkupVisitor {
         }
         
         let prefix: String
-        if listItem.parent is OrderedList {
+        if let checkbox = listItem.checkbox {
+            if checkbox == .checked {
+                prefix = "✅"
+            } else {
+                prefix = "⬜"
+            }
+        } else if listItem.parent is OrderedList {
             prefix = "\(listItem.indexInParent + 1)."
         } else {
-            prefix = "•"
+            switch depth {
+            case 0: prefix = "•"
+            case 1: prefix = "•"
+            case 2: prefix = "⁃"
+            default: prefix = "⁃"
+            }
         }
         
         let spacing = String(repeating: " ", count: 2*depth)
         var string = AttributedString("\(spacing)\(prefix) ")
-        string += listItem.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
-        
-        let style: Style
-        switch depth {
-        case 1: style = .listItem1
-        case 2: style = .listItem2
-        case 3: style = .listItem3
-        default: style = .listItem4
-        }
-        string.font = style.font
-        string.foregroundColor = style.foregroundColor
+        string += defaultVisit(listItem)
+        string.font = style.listItem.font
+        string.paragraphStyle = style.listItem.paragraphStyle
+        string.foregroundColor = style.listItem.foregroundColor
         return string
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> AttributedString {
-        var string = AttributedString("\n \u{00a0} \n")
+        var string = AttributedString("\n\u{00a0}\n")
         string.strikethroughStyle = .single
-        string.strikethroughColor = Style.thematicBreak.foregroundColor
+        string.strikethroughColor = style.thematicBreak.foregroundColor
+        string.font = style.thematicBreak.font
         return string
     }
     
     mutating func visitTable(_ table: Table) -> AttributedString {
-        return "\n" + table.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) } + "\n"
+        return "\n" + defaultVisit(table) + "\n"
     }
     
     mutating func visitTableHead(_ tableHead: Table.Head) -> AttributedString {
-        var string = tableHead.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
-        string.font = Style.tableHead.font
+        var string = defaultVisit(tableHead)
+        string.font = style.tableHead.font
         return string
     }
     
@@ -204,7 +210,7 @@ extension Visitor: MarkupVisitor {
         var string = tableCell.children
             .compactMap { heading + visit($0) + tailing }
             .reduce(into: AttributedString()) { $0.append($1) }
-        string.font = Style.tableCell.font
+        string.font = style.tableCell.font
         
         if tableCell.parent?.childCount == tableCell.indexInParent + 1 {
             string += "\n"
@@ -215,18 +221,14 @@ extension Visitor: MarkupVisitor {
    
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
         var heading = AttributedString("❝ ")
-        heading.font = NSFont.systemFont(ofSize: 40)
-        heading.foregroundColor = Style.blockQuote.foregroundColor
+        heading.font = NSFont.systemFont(ofSize: 32)
+        heading.foregroundColor = style.blockQuote.foregroundColor
         
-        var string = blockQuote.children
-            .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
-        string.font = Style.blockQuote.font
-        string.foregroundColor = Style.blockQuote.foregroundColor
-        
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = 6
-        string.paragraphStyle = paragraphStyle
+        var string = defaultVisit(blockQuote)
+        string.font = style.blockQuote.font
+        string.paragraphStyle = style.blockQuote.paragraphStyle
+        string.foregroundColor = style.blockQuote.foregroundColor
+        string.backgroundColor = style.blockQuote.backgroundColor
         
         return heading + string
     }
