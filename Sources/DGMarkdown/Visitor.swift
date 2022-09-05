@@ -238,16 +238,27 @@ extension Visitor: MarkupVisitor {
             return AttributedString(image.plainText)
         }
         
-        let html = """
+        let data = Data("""
         <img src="\(source)">
-        """
-        let data = Data(html.utf8)
+        """.utf8)
             
         guard let attributedString = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
             return AttributedString(image.plainText)
         }
         
         return AttributedString(attributedString)
+    }
+    
+    mutating func visitHTMLBlock(_ html: HTMLBlock) -> AttributedString {
+        let data = Data("""
+        \(html.rawHTML)
+        """.utf8)
+            
+        guard let attributedString = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
+            return defaultVisit(html)
+        }
+        
+        return AttributedString(attributedString) + "\n"
     }
 
 }
