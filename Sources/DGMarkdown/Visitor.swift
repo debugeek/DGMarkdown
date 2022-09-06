@@ -29,17 +29,17 @@ extension Visitor: MarkupVisitor {
     mutating func visitDocument(_ document: Document) -> AttributedString {
         var string = defaultVisit(document)
         string.paragraphStyle = style.document.paragraphStyle
-        return "\n\n" + string + "\n"
+        return .blankLine(withHeight: 20) + "\n" + string + "\n" + .blankLine(withHeight: 20)
     }
     
     mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
-        return defaultVisit(paragraph) + "\n"
+        return defaultVisit(paragraph).appendingBlankLine(withHeight: style.paragraph.lineBreakHeight)
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
-        var string = AttributedString("\n")
+        var string = AttributedString.blankLine(withHeight: style.softBreak.lineBreakHeight)
         string.inlinePresentationIntent = .softBreak
-        return string
+        return "\n" + string + "\n"
     }
     
     mutating func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
@@ -67,13 +67,7 @@ extension Visitor: MarkupVisitor {
     }
     
     func visitCodeBlock(_ codeBlock: CodeBlock) -> AttributedString {
-        var string = AttributedString(codeBlock.code)
-        string.font = style.codeBlock.font
-        string.paragraphStyle = style.codeBlock.paragraphStyle
-        string.foregroundColor = style.codeBlock.foregroundColor
-        string.backgroundColor = style.codeBlock.backgroundColor
-        string.languageIdentifier = codeBlock.language
-        return string + "\n"
+        return Syntax.highlighted(withCode: codeBlock.code, style: style.codeBlock, languageIdentifier: codeBlock.language) + "\n"
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {
@@ -88,12 +82,7 @@ extension Visitor: MarkupVisitor {
         string.font = headingStyle.font
         string.paragraphStyle = headingStyle.paragraphStyle
         string.foregroundColor = headingStyle.foregroundColor
-        
-        var spacing = AttributedString(" \n")
-        spacing.font = NSFont.systemFont(ofSize: headingStyle.lineBreakHeight)
-        string += spacing
-        
-        return string
+        return string.appendingBlankLine(withHeight: headingStyle.lineBreakHeight)
     }
     
     mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {

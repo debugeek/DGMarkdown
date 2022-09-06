@@ -8,10 +8,12 @@
 
 import Cocoa
 import Markdown
+import DGExtension
 
 public struct Style {
     
     var document: DocumentStyle
+    var paragraph: ParagraphStyle
     
     var text: TextStyle
     var h1: HeadingStyle
@@ -27,13 +29,16 @@ public struct Style {
     var tableHead: TableHeadStyle
     var tableCell: TableCellStyle
     var blockQuote: BlockQuoteStyle
+    var softBreak: SoftBreakStyle
     
     public init() {
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.lineSpacing = 6
-            paragraphStyle.paragraphSpacing = 12
             document = DocumentStyle(paragraphStyle: paragraphStyle)
+        }
+        
+        do {
+            paragraph = ParagraphStyle(lineBreakHeight: 12)
         }
         
         do {
@@ -100,9 +105,9 @@ public struct Style {
         do {
             let paragraphStyle = NSMutableParagraphStyle()
             codeBlock = CodeBlockStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-                                        paragraphStyle: paragraphStyle,
-                                        foregroundColor: .textColor,
-                                        backgroundColor: .lightGray)
+                                       paragraphStyle: paragraphStyle,
+                                       foregroundColor: NSColor.color(withHex: 0xFFFFFF, alpha: 0.85),
+                                       backgroundColor: NSColor.color(withHex: 0x161616))
         }
         
         do {
@@ -133,12 +138,20 @@ public struct Style {
                                          foregroundColor: .textColor,
                                          backgroundColor: .clear)
         }
+        
+        do {
+            softBreak = SoftBreakStyle(lineBreakHeight: 6)
+        }
     }
     
 }
 
 struct DocumentStyle {
     var paragraphStyle: NSParagraphStyle
+}
+
+struct ParagraphStyle {
+    var lineBreakHeight: CGFloat
 }
 
 struct TextStyle {
@@ -170,26 +183,26 @@ struct StrongStyle {
 struct InlineCodeStyle {
     var font: NSFont
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
-    var backgroundColor: NSColor
+    var foregroundColor: NSColor?
+    var backgroundColor: NSColor?
 }
 
 struct CodeBlockStyle {
     var font: NSFont
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
-    var backgroundColor: NSColor
+    var foregroundColor: NSColor?
+    var backgroundColor: NSColor?
 }
 
 struct ListItemStyle {
     var font: NSFont
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
+    var foregroundColor: NSColor?
 }
 
 struct ThematicBreakStyle {
     var font: NSFont
-    var foregroundColor: NSColor
+    var foregroundColor: NSColor?
 }
 
 struct TableHeadStyle {
@@ -203,6 +216,10 @@ struct TableCellStyle {
 struct BlockQuoteStyle {
     var font: NSFont
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
-    var backgroundColor: NSColor
+    var foregroundColor: NSColor?
+    var backgroundColor: NSColor?
+}
+
+struct SoftBreakStyle {
+    var lineBreakHeight: CGFloat
 }

@@ -11,9 +11,13 @@ let package = Package(
         .library(name: "DGMarkdown", targets: ["DGMarkdown"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-markdown.git", .branch("main"))
+        .package(url: "https://github.com/apple/swift-markdown.git", branch: "main"),
+        .package(url: "https://github.com/debugeek/DGExtension.git", branch: "main")
     ],
     targets: [
-        .target(name: "DGMarkdown", dependencies: [.product(name: "Markdown", package: "swift-markdown")])
+        .target(name: "DGMarkdown", dependencies: [
+            .product(name: "Markdown", package: "swift-markdown"),
+            .product(name: "DGExtension", package: "DGExtension")
+        ])
     ]
 )
