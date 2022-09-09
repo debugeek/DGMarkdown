@@ -6,11 +6,27 @@
 //  Copyright © 2022 debugeek. All rights reserved.
 //
 
-import Cocoa
+import Foundation
 import Markdown
 import DGExtension
 
+#if canImport(Cocoa)
+import Cocoa
+typealias Font = NSFont
+typealias Color = NSColor
+#else
+import UIKit
+typealias Font = UIFont
+typealias Color = UIColor
+#endif
+
 public struct Style {
+    
+    #if canImport(Cocoa)
+    var textColor = NSColor.textColor
+    #else
+    var textColor = UIColor.label
+    #endif
     
     var document: DocumentStyle
     var paragraph: ParagraphStyle
@@ -43,99 +59,99 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            text = TextStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-                                 paragraphStyle: paragraphStyle,
-                                 foregroundColor: .textColor)
+            text = TextStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+                             paragraphStyle: paragraphStyle,
+                             foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h1 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 32, weight: .heavy),
+            h1 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 32, weight: .heavy),
                               paragraphStyle: paragraphStyle,
-                              foregroundColor: .textColor,
+                              foregroundColor: textColor,
                               lineBreakHeight: 14)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h2 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 28, weight: .bold),
+            h2 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 28, weight: .bold),
                               paragraphStyle: paragraphStyle,
-                              foregroundColor: .textColor,
+                              foregroundColor: textColor,
                               lineBreakHeight: 10)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h3 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 24, weight: .semibold),
+            h3 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 24, weight: .semibold),
                               paragraphStyle: paragraphStyle,
-                              foregroundColor: .textColor,
+                              foregroundColor: textColor,
                               lineBreakHeight: 8)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h4 = HeadingStyle(font: NSFont.monospacedSystemFont(ofSize: 20, weight: .medium),
+            h4 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 20, weight: .medium),
                               paragraphStyle: paragraphStyle,
-                              foregroundColor: .textColor,
+                              foregroundColor: textColor,
                               lineBreakHeight: 4)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            link = LinkStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .light),
+            link = LinkStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .light),
                              paragraphStyle: paragraphStyle,
-                             foregroundColor: .textColor)
+                             foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            strong = StrongStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .bold),
+            strong = StrongStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .bold),
                                  paragraphStyle: paragraphStyle,
-                                 foregroundColor: .textColor)
+                                 foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            inlineCode = InlineCodeStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+            inlineCode = InlineCodeStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
                                          paragraphStyle: paragraphStyle,
-                                         foregroundColor: .textColor,
-                                         backgroundColor: .lightGray)
+                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
+                                         backgroundColor: Color.color(withHex: 0x161616))
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            codeBlock = CodeBlockStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
+            codeBlock = CodeBlockStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
                                        paragraphStyle: paragraphStyle,
-                                       foregroundColor: NSColor.color(withHex: 0xFFFFFF, alpha: 0.85),
-                                       backgroundColor: NSColor.color(withHex: 0x161616))
+                                       foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
+                                       backgroundColor: Color.color(withHex: 0x161616))
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            listItem = ListItemStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-                                      paragraphStyle: paragraphStyle,
-                                      foregroundColor: .textColor)
+            listItem = ListItemStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                     paragraphStyle: paragraphStyle,
+                                     foregroundColor: textColor)
         }
         
         do {
-            thematicBreak = ThematicBreakStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-                                               foregroundColor: .textColor)
+            thematicBreak = ThematicBreakStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+                                               foregroundColor: textColor)
         }
         
         do {
-            tableHead = TableHeadStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular))
+            tableHead = TableHeadStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular))
         }
         
         do {
-            tableCell = TableCellStyle(font: NSFont.monospacedSystemFont(ofSize: 16, weight: .regular))
+            tableCell = TableCellStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular))
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.lineSpacing = 6
-            blockQuote = BlockQuoteStyle(font: NSFontManager.shared.convert(NSFont.monospacedSystemFont(ofSize: 16, weight: .regular), toHaveTrait: .italicFontMask),
+            blockQuote = BlockQuoteStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular).italic(),
                                          paragraphStyle: paragraphStyle,
-                                         foregroundColor: .textColor,
+                                         foregroundColor: textColor,
                                          backgroundColor: .clear)
         }
         
@@ -155,69 +171,69 @@ struct ParagraphStyle {
 }
 
 struct TextStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
+    var foregroundColor: Color?
     
 }
 
 struct HeadingStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
+    var foregroundColor: Color?
     var lineBreakHeight: CGFloat
 }
 
 struct LinkStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
+    var foregroundColor: Color?
 }
 
 struct StrongStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor
+    var foregroundColor: Color?
 }
 
 struct InlineCodeStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor?
-    var backgroundColor: NSColor?
+    var foregroundColor: Color?
+    var backgroundColor: Color?
 }
 
 struct CodeBlockStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor?
-    var backgroundColor: NSColor?
+    var foregroundColor: Color?
+    var backgroundColor: Color?
 }
 
 struct ListItemStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor?
+    var foregroundColor: Color?
 }
 
 struct ThematicBreakStyle {
-    var font: NSFont
-    var foregroundColor: NSColor?
+    var font: Font
+    var foregroundColor: Color?
 }
 
 struct TableHeadStyle {
-    var font: NSFont
+    var font: Font
 }
 
 struct TableCellStyle {
-    var font: NSFont
+    var font: Font
 }
 
 struct BlockQuoteStyle {
-    var font: NSFont
+    var font: Font
     var paragraphStyle: NSParagraphStyle
-    var foregroundColor: NSColor?
-    var backgroundColor: NSColor?
+    var foregroundColor: Color?
+    var backgroundColor: Color?
 }
 
 struct SoftBreakStyle {

@@ -3,6 +3,7 @@
 //  DGMarkdownExample-macOS
 //
 //  Created by Xiao Jin on 2022/8/27.
+//  Copyright © 2022 debugeek. All rights reserved.
 //
 
 import Cocoa
