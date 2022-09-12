@@ -14,17 +14,6 @@ class ViewController: NSViewController {
     @IBOutlet var editTextView: NSTextView!
     @IBOutlet var previewTextView: NSTextView!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-
-    override var representedObject: Any? {
-        didSet {
-        // Update the view, if already loaded.
-        }
-    }
-
-    
 }
 
 extension ViewController: NSTextViewDelegate {
