@@ -13,12 +13,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-markdown.git", branch: "main"),
-        .package(url: "https://github.com/debugeek/DGExtension.git", branch: "main")
+        .package(url: "https://github.com/debugeek/DGExtension.git", branch: "main"),
+        .package(url: "https://github.com/debugeek/DGSyntaxHighlighter.git", branch: "main"),
     ],
     targets: [
         .target(name: "DGMarkdown", dependencies: [
             .product(name: "Markdown", package: "swift-markdown"),
-            .product(name: "DGExtension", package: "DGExtension")
+            .product(name: "DGExtension", package: "DGExtension"),
+            .product(name: "DGSyntaxHighlighter", package: "DGSyntaxHighlighter")
         ])
     ]
 )

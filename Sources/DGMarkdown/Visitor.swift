@@ -8,6 +8,7 @@
 
 import Foundation
 import Markdown
+import DGSyntaxHighlighter
 
 struct Visitor {
     
@@ -66,7 +67,17 @@ extension Visitor: MarkupVisitor {
     }
     
     func visitCodeBlock(_ codeBlock: CodeBlock) -> AttributedString {
-        return Syntax.highlighted(withCode: codeBlock.code, style: style.codeBlock, languageIdentifier: codeBlock.language) + "\n"
+        let identifier: DGSyntaxHighlighter.Identifier
+        if let language = codeBlock.language {
+            identifier = .init(rawValue: language) ?? .plain
+        } else {
+            identifier = .plain
+        }
+        
+        var string = DGSyntaxHighlighter.highlight(string: codeBlock.code, identifier: identifier)
+        string.paragraphStyle = style.codeBlock.paragraphStyle
+        string.backgroundColor = style.codeBlock.backgroundColor
+        return string + "\n"
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {
