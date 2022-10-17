@@ -10,28 +10,21 @@ import Foundation
 import Markdown
 
 public struct DGMarkdown {
-    
-    private static let queue = DispatchQueue(label: "com.debugeek.markdown")
-    
+        
     public static var debugEnabled = false
     
-    public static func parse(text: String, style: Style, using block: @escaping (AttributedString) -> Void) {
-        queue.async {
-            let document = Document(parsing: text)
-            
-            #if DEBUG
-            if debugEnabled {
-                print(document.debugDescription())
-            }
-            #endif
-            
-            var visitor = Visitor(style: style)
-            let result = visitor.visit(document)
-            
-            DispatchQueue.main.async {
-                block(result)
-            }
+    public static func attributedString(fromMarkdownText text: String, style: Style) -> AttributedString {
+        let document = Document(parsing: text)
+        
+        #if DEBUG
+        if debugEnabled {
+            print(document.debugDescription())
         }
+        #endif
+        
+        var visitor = Visitor(style: style)
+        let attributedString = visitor.visit(document)
+        return attributedString
     }
     
 }

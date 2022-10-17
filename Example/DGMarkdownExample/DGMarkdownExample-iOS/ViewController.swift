@@ -117,9 +117,8 @@ extension Markup {
 }
 ```
 """
-        DGMarkdown.parse(text: text, style: Style()) { string in
-            self.textView.attributedText = NSAttributedString(string)
-        }
+        let attributedString = DGMarkdown.attributedString(fromMarkdownText: text, style: Style())
+        textView.attributedText = NSAttributedString(attributedString)
     }
 
 
