@@ -74,7 +74,7 @@ extension Visitor: MarkupVisitor {
             identifier = .plain
         }
         
-        var string = DGSyntaxHighlighter.highlight(string: codeBlock.code, identifier: identifier)
+        var string = DGSyntaxHighlighter.highlighted(string: codeBlock.code, identifier: identifier)
         string.paragraphStyle = style.codeBlock.paragraphStyle
         string.backgroundColor = style.codeBlock.backgroundColor
         return string + "\n"
