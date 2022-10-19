@@ -42,8 +42,7 @@ public struct Style {
     var codeBlock: CodeBlockStyle
     var listItem: ListItemStyle
     var thematicBreak: ThematicBreakStyle
-    var tableHead: TableHeadStyle
-    var tableCell: TableCellStyle
+    var table: TableStyle
     var blockQuote: BlockQuoteStyle
     var softBreak: SoftBreakStyle
     
@@ -139,11 +138,8 @@ public struct Style {
         }
         
         do {
-            tableHead = TableHeadStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular))
-        }
-        
-        do {
-            tableCell = TableCellStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular))
+            table = TableStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+                               foregroundColor: textColor)
         }
         
         do {
@@ -221,12 +217,9 @@ struct ThematicBreakStyle {
     var foregroundColor: Color?
 }
 
-struct TableHeadStyle {
+struct TableStyle {
     var font: Font
-}
-
-struct TableCellStyle {
-    var font: Font
+    var foregroundColor: Color?
 }
 
 struct BlockQuoteStyle {

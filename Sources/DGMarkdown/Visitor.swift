@@ -25,13 +25,7 @@ extension Visitor: MarkupVisitor {
             .compactMap { visit($0) }
             .reduce(into: AttributedString()) { $0.append($1) }
     }
-    
-    mutating func visitDocument(_ document: Document) -> AttributedString {
-        var string = defaultVisit(document)
-        string.paragraphStyle = style.document.paragraphStyle
-        return .blankLine(withHeight: 20) + "\n" + string + "\n" + .blankLine(withHeight: 20)
-    }
-    
+
     mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
         return defaultVisit(paragraph).appendingBlankLine(withHeight: style.paragraph.lineBreakHeight)
     }
@@ -168,54 +162,54 @@ extension Visitor: MarkupVisitor {
     }
     
     mutating func visitTable(_ table: Table) -> AttributedString {
-        return "\n" + defaultVisit(table) + "\n"
-    }
-    
-    mutating func visitTableHead(_ tableHead: Table.Head) -> AttributedString {
-        var string = defaultVisit(tableHead)
-        string.font = style.tableHead.font
-        return string
-    }
-    
-    mutating func visitTableCell(_ tableCell: Table.Cell) -> AttributedString {
-        var parent = tableCell.parent
-        while parent != nil {
-            if parent is Table {
-                break
+        let data = Data({ () -> String in
+            return """
+        <html>
+        <head>
+        <style>
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          text-align: center;
+        }
+        td, th {
+          border: 1px solid #999999;
+          padding: 10px;
+        }
+        </style>
+        </head>
+        <body>
+        <table>
+        \({ () -> String in
+        var html = ""
+        for head in table.head.cells.map({ $0.plainText }) {
+            html += "<th>\(head)</th>"
+        }
+        html += "</tr>"
+
+        for row in table.body.rows {
+            html += "<tr>"
+            for cell in row.cells.map({ $0.plainText }) {
+                html += "<td>\(cell)</td>"
             }
-            parent = parent?.parent
+            html += "</tr>"
         }
-        
-        var maxCharactersPerColumn = [Int: Int]()
-        if let table = parent as? Table {
-            for (column, cell) in table.head.cells.enumerated() {
-                maxCharactersPerColumn[column] = max(cell.plainText.count, maxCharactersPerColumn[column, default: 0])
-            }
-            for row in table.body.rows {
-                for (column, cell) in row.cells.enumerated() {
-                    maxCharactersPerColumn[column] = max(cell.plainText.count, maxCharactersPerColumn[column, default: 0])
-                }
-            }
+        return html
+        }())
+        </table>
+        </body>
+        </html>
+        """
+        }().utf8)
+
+        guard let html = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
+            return AttributedString("")
         }
-        maxCharactersPerColumn = maxCharactersPerColumn.mapValues { value in
-            return value + 2
-        }
-        
-        let maxCharacters = maxCharactersPerColumn[tableCell.indexInParent, default: 0]
-        let totalPadding = maxCharacters - tableCell.plainText.count
-        let heading = AttributedString(String(repeating: " ", count: totalPadding/2))
-        let tailing = AttributedString(String(repeating: " ", count: totalPadding/2 + (totalPadding%2 == 0 ? 0 : 1)))
-        
-        var string = tableCell.children
-            .compactMap { heading + visit($0) + tailing }
-            .reduce(into: AttributedString()) { $0.append($1) }
-        string.font = style.tableCell.font
-        
-        if tableCell.parent?.childCount == tableCell.indexInParent + 1 {
-            string += "\n"
-        }
-        
-        return string
+
+        var string = AttributedString(html)
+        string.font = style.table.font
+        string.foregroundColor = style.table.foregroundColor
+        return string.appendingBlankLine(withHeight: style.paragraph.lineBreakHeight)
     }
    
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
