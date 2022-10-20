@@ -53,19 +53,20 @@ public struct Style {
         }
         
         do {
-            paragraph = ParagraphStyle(lineBreakHeight: 12)
+            paragraph = ParagraphStyle(lineBreakHeight: 20)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            text = TextStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+            text = TextStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                              paragraphStyle: paragraphStyle,
                              foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h1 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 32, weight: .heavy),
+            paragraphStyle.paragraphSpacing = 24
+            h1 = HeadingStyle(font: Font.systemFont(ofSize: 32, weight: .heavy),
                               paragraphStyle: paragraphStyle,
                               foregroundColor: textColor,
                               lineBreakHeight: 14)
@@ -73,7 +74,8 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h2 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 28, weight: .bold),
+            paragraphStyle.paragraphSpacing = 18
+            h2 = HeadingStyle(font: Font.systemFont(ofSize: 28, weight: .bold),
                               paragraphStyle: paragraphStyle,
                               foregroundColor: textColor,
                               lineBreakHeight: 10)
@@ -81,7 +83,8 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h3 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 24, weight: .semibold),
+            paragraphStyle.paragraphSpacing = 12
+            h3 = HeadingStyle(font: Font.systemFont(ofSize: 24, weight: .semibold),
                               paragraphStyle: paragraphStyle,
                               foregroundColor: textColor,
                               lineBreakHeight: 8)
@@ -89,7 +92,8 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            h4 = HeadingStyle(font: Font.monospacedSystemFont(ofSize: 20, weight: .medium),
+            paragraphStyle.paragraphSpacing = 8
+            h4 = HeadingStyle(font: Font.systemFont(ofSize: 20, weight: .medium),
                               paragraphStyle: paragraphStyle,
                               foregroundColor: textColor,
                               lineBreakHeight: 4)
@@ -97,21 +101,21 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            link = LinkStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .light),
+            link = LinkStyle(font: Font.systemFont(ofSize: 16, weight: .light),
                              paragraphStyle: paragraphStyle,
                              foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            strong = StrongStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .bold),
+            strong = StrongStyle(font: Font.systemFont(ofSize: 16, weight: .bold),
                                  paragraphStyle: paragraphStyle,
                                  foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            inlineCode = InlineCodeStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+            inlineCode = InlineCodeStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                          paragraphStyle: paragraphStyle,
                                         foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                          backgroundColor: Color.color(withHex: 0x161616))
@@ -119,7 +123,7 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            codeBlock = CodeBlockStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+            codeBlock = CodeBlockStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                        paragraphStyle: paragraphStyle,
                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                        backgroundColor: Color.color(withHex: 0x161616))
@@ -127,25 +131,25 @@ public struct Style {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            listItem = ListItemStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+            listItem = ListItemStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                      paragraphStyle: paragraphStyle,
                                      foregroundColor: textColor)
         }
         
         do {
-            thematicBreak = ThematicBreakStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
+            thematicBreak = ThematicBreakStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                                foregroundColor: textColor)
         }
         
         do {
-            table = TableStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
-                               foregroundColor: textColor)
+            table = TableStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+                               foregroundColor: textColor,
+                               paragraphSpacing: 16)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.lineSpacing = 6
-            blockQuote = BlockQuoteStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular).italic(),
+            blockQuote = BlockQuoteStyle(font: Font.systemFont(ofSize: 16, weight: .regular).italic(),
                                          paragraphStyle: paragraphStyle,
                                          foregroundColor: textColor,
                                          backgroundColor: .clear)
@@ -220,6 +224,7 @@ struct ThematicBreakStyle {
 struct TableStyle {
     var font: Font
     var foregroundColor: Color?
+    var paragraphSpacing: CGFloat
 }
 
 struct BlockQuoteStyle {

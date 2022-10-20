@@ -31,19 +31,25 @@ extension Markup {
 }
 
 extension AttributedString {
-    
-    static func blankLine(withHeight height: CGFloat) -> AttributedString {
+
+    static func blankLine(withLineHeight lineHeight: CGFloat) -> AttributedString {
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.minimumLineHeight = height
-        paragraphStyle.maximumLineHeight = height
+        paragraphStyle.minimumLineHeight = lineHeight
+        paragraphStyle.maximumLineHeight = lineHeight
         
-        var lineBreak = AttributedString(" ")
-        lineBreak.paragraphStyle = paragraphStyle
-        return lineBreak
+        var string = AttributedString(" ")
+        string.paragraphStyle = paragraphStyle
+        return string
     }
-    
-    func appendingBlankLine(withHeight height: CGFloat) -> AttributedString {
-        return self + "\n" + .blankLine(withHeight: height) + "\n"
+
+    mutating func appendLineBreak() {
+        self.append(AttributedString("\n"))
+    }
+
+    mutating func appendBlankLine(withLineHeight lineHeight: CGFloat) {
+        self.append(AttributedString("\n"))
+        self.append(AttributedString.blankLine(withLineHeight: lineHeight))
+        self.append(AttributedString("\n"))
     }
     
 }

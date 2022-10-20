@@ -10,6 +10,12 @@ import Foundation
 import Markdown
 import DGSyntaxHighlighter
 
+#if canImport(Cocoa)
+import AppKit
+#else
+import UIKit
+#endif
+
 struct Visitor {
     
     let style: Style
@@ -26,14 +32,23 @@ extension Visitor: MarkupVisitor {
             .reduce(into: AttributedString()) { $0.append($1) }
     }
 
+    mutating func visitDocument(_ document: Document) -> AttributedString {
+        var string = AttributedString("\n")
+        string += defaultVisit(document)
+        return string
+    }
+
     mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
-        return defaultVisit(paragraph).appendingBlankLine(withHeight: style.paragraph.lineBreakHeight)
+        var string = defaultVisit(paragraph)
+        string.appendBlankLine(withLineHeight: style.paragraph.lineBreakHeight)
+        return string
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
-        var string = AttributedString.blankLine(withHeight: style.softBreak.lineBreakHeight)
+        var string = AttributedString()
+        string.appendBlankLine(withLineHeight: style.softBreak.lineBreakHeight)
         string.inlinePresentationIntent = .softBreak
-        return "\n" + string + "\n"
+        return string
     }
     
     mutating func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
@@ -82,11 +97,12 @@ extension Visitor: MarkupVisitor {
         case 3: headingStyle = style.h3
         default: headingStyle = style.h4
         }
-        var string = defaultVisit(heading)
+        var string = AttributedString(heading.plainText)
         string.font = headingStyle.font
         string.paragraphStyle = headingStyle.paragraphStyle
         string.foregroundColor = headingStyle.foregroundColor
-        return string.appendingBlankLine(withHeight: headingStyle.lineBreakHeight)
+        string.appendLineBreak()
+        return string
     }
     
     mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {
@@ -162,8 +178,7 @@ extension Visitor: MarkupVisitor {
     }
     
     mutating func visitTable(_ table: Table) -> AttributedString {
-        let data = Data({ () -> String in
-            return """
+        guard let data = """
         <html>
         <head>
         <style>
@@ -199,8 +214,7 @@ extension Visitor: MarkupVisitor {
         </table>
         </body>
         </html>
-        """
-        }().utf8)
+        """.data(using: String.Encoding.utf16, allowLossyConversion: false) else { return AttributedString("") }
 
         guard let html = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
             return AttributedString("")
@@ -209,21 +223,80 @@ extension Visitor: MarkupVisitor {
         var string = AttributedString(html)
         string.font = style.table.font
         string.foregroundColor = style.table.foregroundColor
-        return string.appendingBlankLine(withHeight: style.paragraph.lineBreakHeight)
+        string.appendBlankLine(withLineHeight: style.table.paragraphSpacing)
+        return string
     }
-   
+
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
         var heading = AttributedString("❝ ")
         heading.font = Font.systemFont(ofSize: 32)
         heading.foregroundColor = style.blockQuote.foregroundColor
-        
-        var string = defaultVisit(blockQuote)
-        string.font = style.blockQuote.font
-        string.paragraphStyle = style.blockQuote.paragraphStyle
-        string.foregroundColor = style.blockQuote.foregroundColor
-        string.backgroundColor = style.blockQuote.backgroundColor
-        
-        return heading + string
+        heading.backgroundColor = style.blockQuote.backgroundColor
+
+        var body = defaultVisit(blockQuote)
+        body.font = style.blockQuote.font
+        body.foregroundColor = style.blockQuote.foregroundColor
+        body.backgroundColor = style.blockQuote.backgroundColor
+
+        let string = heading + body
+
+        guard let paragraphStyle = style.blockQuote.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
+
+        let attributedString = NSMutableAttributedString(string)
+
+        var depth = 0
+        var parent = blockQuote.parent
+        while parent != nil {
+            if parent is BlockQuote {
+                depth += 1
+            }
+            parent = parent?.parent
+        }
+
+        let indent = CGFloat(depth + 1)*20
+        paragraphStyle.tabStops = [NSTextTab(textAlignment: .left, location: indent, options: [:])]
+        paragraphStyle.firstLineHeadIndent = indent
+        paragraphStyle.headIndent = indent
+
+        var renderedRanges = [NSRange]()
+        attributedString.enumerateAttribute(.expansion, in: NSRange(0..<attributedString.length)) { value, range, stop in
+            if value != nil {
+                renderedRanges.append(range)
+            }
+        }
+
+        var unrenderedRanges: [NSRange] = [NSMakeRange(0, attributedString.length)]
+        repeat {
+            var matched = false
+
+            for renderedRange in renderedRanges {
+                for (index, unrenderedRange) in unrenderedRanges.enumerated() {
+                    guard renderedRange.intersection(unrenderedRange) != nil else {
+                        continue
+                    }
+
+                    unrenderedRanges.remove(at: index)
+                    unrenderedRanges.append(NSRange(location: min(unrenderedRange.lowerBound, renderedRange.lowerBound),
+                                                   length: abs(unrenderedRange.lowerBound - renderedRange.lowerBound)))
+                    unrenderedRanges.append(NSRange(location: min(unrenderedRange.upperBound, renderedRange.upperBound),
+                                                   length: abs(unrenderedRange.upperBound - renderedRange.upperBound)))
+
+                    matched = true
+                    break
+                }
+            }
+
+            if !matched {
+                break
+            }
+        } while unrenderedRanges.count > 0
+
+        for unrenderedRange in unrenderedRanges {
+            attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: unrenderedRange)
+            attributedString.addAttribute(.expansion, value: CGFloat.leastNormalMagnitude, range: unrenderedRange)
+        }
+
+        return AttributedString(attributedString)
     }
     
     mutating func visitImage(_ image: Image) -> AttributedString {
