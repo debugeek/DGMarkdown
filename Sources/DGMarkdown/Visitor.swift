@@ -82,11 +82,35 @@ extension Visitor: MarkupVisitor {
         } else {
             identifier = .plain
         }
-        
-        var string = DGSyntaxHighlighter.highlighted(string: codeBlock.code, identifier: identifier)
-        string.paragraphStyle = style.codeBlock.paragraphStyle
+
+        var heading = AttributedString("\u{00a0}\n")
+        heading.backgroundColor = style.codeBlock.backgroundColor
+        heading.paragraphStyle = style.codeBlock.paragraphStyle
+        heading.font = style.codeBlock.font
+
+        var tailing = AttributedString()
+        tailing.append(AttributedString.blankLine(withLineHeight: 0))
+        tailing.append(AttributedString("\n"))
+
+        tailing.backgroundColor = style.codeBlock.backgroundColor
+        tailing.paragraphStyle = style.codeBlock.paragraphStyle
+        tailing.font = style.codeBlock.font
+
+        var string = AttributedString()
+        string += DGSyntaxHighlighter.highlighted(string: codeBlock.code, identifier: identifier)
+
+        guard let paragraphStyle = style.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
+        paragraphStyle.alignment = .left
+        paragraphStyle.firstLineHeadIndent = style.codeBlock.indent
+        paragraphStyle.headIndent = style.codeBlock.indent
+        paragraphStyle.tailIndent = -style.codeBlock.indent
+        paragraphStyle.lineSpacing = style.codeBlock.lineSpacing
+
+        string.paragraphStyle = paragraphStyle
         string.backgroundColor = style.codeBlock.backgroundColor
-        return string + "\n"
+        string.baselineOffset = -style.codeBlock.lineSpacing
+
+        return heading + string + tailing
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {

@@ -117,7 +117,7 @@ public struct Style {
             let paragraphStyle = NSMutableParagraphStyle()
             inlineCode = InlineCodeStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                          paragraphStyle: paragraphStyle,
-                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
+                                         foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                          backgroundColor: Color.color(withHex: 0x161616))
         }
         
@@ -126,7 +126,9 @@ public struct Style {
             codeBlock = CodeBlockStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
                                        paragraphStyle: paragraphStyle,
                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
-                                       backgroundColor: Color.color(withHex: 0x161616))
+                                       backgroundColor: Color.color(withHex: 0x161616),
+                                       indent: 28,
+                                       lineSpacing: 4)
         }
         
         do {
@@ -208,6 +210,8 @@ struct CodeBlockStyle {
     var paragraphStyle: NSParagraphStyle
     var foregroundColor: Color?
     var backgroundColor: Color?
+    var indent: CGFloat
+    var lineSpacing: CGFloat
 }
 
 struct ListItemStyle {
