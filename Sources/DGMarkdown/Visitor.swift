@@ -66,12 +66,12 @@ extension Visitor: MarkupVisitor {
     }
     
     func visitInlineCode(_ inlineCode: InlineCode) -> AttributedString {
-        var string = AttributedString(inlineCode.code)
+        var string = AttributedString(" \(inlineCode.code) ")
         string.font = style.inlineCode.font
         string.paragraphStyle = style.inlineCode.paragraphStyle
         string.foregroundColor = style.inlineCode.foregroundColor
         string.backgroundColor = style.inlineCode.backgroundColor
-        string.inlinePresentationIntent = .code
+        string.kern = 1
         return string
     }
     
