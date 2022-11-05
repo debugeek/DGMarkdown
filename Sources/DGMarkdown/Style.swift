@@ -12,39 +12,39 @@ import DGExtension
 
 #if canImport(Cocoa)
 import Cocoa
-typealias Font = NSFont
-typealias Color = NSColor
+public typealias Font = NSFont
+public typealias Color = NSColor
 #else
 import UIKit
-typealias Font = UIFont
-typealias Color = UIColor
+public typealias Font = UIFont
+public typealias Color = UIColor
 #endif
 
-public struct Style {
+public struct StyleSheet {
     
     #if canImport(Cocoa)
-    var textColor = NSColor.textColor
+    public var textColor = NSColor.textColor
     #else
-    var textColor = UIColor.label
+    public var textColor = UIColor.label
     #endif
     
-    var document: DocumentStyle
-    var paragraph: ParagraphStyle
+    public var document: DocumentStyle
+    public var paragraph: ParagraphStyle
     
-    var text: TextStyle
-    var h1: HeadingStyle
-    var h2: HeadingStyle
-    var h3: HeadingStyle
-    var h4: HeadingStyle
-    var link: LinkStyle
-    var strong: StrongStyle
-    var inlineCode: InlineCodeStyle
-    var codeBlock: CodeBlockStyle
-    var listItem: ListItemStyle
-    var thematicBreak: ThematicBreakStyle
-    var table: TableStyle
-    var blockQuote: BlockQuoteStyle
-    var softBreak: SoftBreakStyle
+    public var text: TextStyle
+    public var h1: HeadingStyle
+    public var h2: HeadingStyle
+    public var h3: HeadingStyle
+    public var h4: HeadingStyle
+    public var link: LinkStyle
+    public var strong: StrongStyle
+    public var inlineCode: InlineCodeStyle
+    public var codeBlock: CodeBlockStyle
+    public var listItem: ListItemStyle
+    public var thematicBreak: ThematicBreakStyle
+    public var table: TableStyle
+    public var blockQuote: BlockQuoteStyle
+    public var softBreak: SoftBreakStyle
     
     public init() {
         do {
@@ -164,80 +164,80 @@ public struct Style {
     
 }
 
-struct DocumentStyle {
-    var paragraphStyle: NSParagraphStyle
+public struct DocumentStyle {
+    public var paragraphStyle: NSParagraphStyle
 }
 
-struct ParagraphStyle {
-    var lineBreakHeight: CGFloat
+public struct ParagraphStyle {
+    public var lineBreakHeight: CGFloat
 }
 
-struct TextStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
+public struct TextStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
     
 }
 
-struct HeadingStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
-    var lineBreakHeight: CGFloat
+public struct HeadingStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+    public var lineBreakHeight: CGFloat
 }
 
-struct LinkStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
+public struct LinkStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
 }
 
-struct StrongStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
+public struct StrongStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
 }
 
-struct InlineCodeStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
-    var backgroundColor: Color?
+public struct InlineCodeStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+    public var backgroundColor: Color?
 }
 
-struct CodeBlockStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
-    var backgroundColor: Color?
-    var indent: CGFloat
-    var lineSpacing: CGFloat
+public struct CodeBlockStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+    public var backgroundColor: Color?
+    public var indent: CGFloat
+    public var lineSpacing: CGFloat
 }
 
-struct ListItemStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
+public struct ListItemStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
 }
 
-struct ThematicBreakStyle {
-    var font: Font
-    var foregroundColor: Color?
+public struct ThematicBreakStyle {
+    public var font: Font
+    public var foregroundColor: Color?
 }
 
-struct TableStyle {
-    var font: Font
-    var foregroundColor: Color?
-    var paragraphSpacing: CGFloat
+public struct TableStyle {
+    public var font: Font
+    public var foregroundColor: Color?
+    public var paragraphSpacing: CGFloat
 }
 
-struct BlockQuoteStyle {
-    var font: Font
-    var paragraphStyle: NSParagraphStyle
-    var foregroundColor: Color?
-    var backgroundColor: Color?
+public struct BlockQuoteStyle {
+    public var font: Font
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+    public var backgroundColor: Color?
 }
 
-struct SoftBreakStyle {
-    var lineBreakHeight: CGFloat
+public struct SoftBreakStyle {
+    public var lineBreakHeight: CGFloat
 }

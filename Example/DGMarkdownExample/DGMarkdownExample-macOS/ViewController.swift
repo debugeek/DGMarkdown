@@ -13,14 +13,13 @@ class ViewController: NSViewController {
 
     @IBOutlet var editTextView: NSTextView!
     @IBOutlet var previewTextView: NSTextView!
-    
-    private lazy var style: Style = { Style() }()
 }
 
 extension ViewController: NSTextViewDelegate {
     
     func textDidChange(_ notification: Notification) {
-        let attributedString = DGMarkdown.attributedString(fromMarkdownText: editTextView.string, style: style)
+        let markdown = DGMarkdown()
+        let attributedString = markdown.attributedString(fromMarkdownText: editTextView.string)
         previewTextView.textStorage?.setAttributedString(NSAttributedString(attributedString))
     }
     

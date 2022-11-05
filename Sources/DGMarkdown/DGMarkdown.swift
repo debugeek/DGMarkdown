@@ -11,9 +11,13 @@ import Markdown
 
 public struct DGMarkdown {
         
-    public static var debugEnabled = false
+    public var debugEnabled = false
+
+    public var styleSheet = StyleSheet()
+
+    public init() {}
     
-    public static func attributedString(fromMarkdownText text: String, style: Style) -> AttributedString {
+    public func attributedString(fromMarkdownText text: String) -> AttributedString {
         let document = Document(parsing: text)
         
         #if DEBUG
@@ -22,7 +26,7 @@ public struct DGMarkdown {
         }
         #endif
         
-        var visitor = Visitor(style: style)
+        var visitor = Visitor(styleSheet: styleSheet)
         let attributedString = visitor.visit(document)
         return attributedString
     }

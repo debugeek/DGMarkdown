@@ -18,7 +18,7 @@ import UIKit
 
 struct Visitor {
     
-    let style: Style
+    let styleSheet: StyleSheet
     
 }
 
@@ -40,13 +40,13 @@ extension Visitor: MarkupVisitor {
 
     mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
         var string = defaultVisit(paragraph)
-        string.appendBlankLine(withLineHeight: style.paragraph.lineBreakHeight)
+        string.appendBlankLine(withLineHeight: styleSheet.paragraph.lineBreakHeight)
         return string
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
         var string = AttributedString()
-        string.appendBlankLine(withLineHeight: style.softBreak.lineBreakHeight)
+        string.appendBlankLine(withLineHeight: styleSheet.softBreak.lineBreakHeight)
         string.inlinePresentationIntent = .softBreak
         return string
     }
@@ -59,18 +59,18 @@ extension Visitor: MarkupVisitor {
     
     func visitText(_ text: Text) -> AttributedString {
         var string = AttributedString(text.plainText)
-        string.font = style.text.font
-        string.paragraphStyle = style.text.paragraphStyle
-        string.foregroundColor = style.text.foregroundColor
+        string.font = styleSheet.text.font
+        string.paragraphStyle = styleSheet.text.paragraphStyle
+        string.foregroundColor = styleSheet.text.foregroundColor
         return string
     }
     
     func visitInlineCode(_ inlineCode: InlineCode) -> AttributedString {
         var string = AttributedString(" \(inlineCode.code) ")
-        string.font = style.inlineCode.font
-        string.paragraphStyle = style.inlineCode.paragraphStyle
-        string.foregroundColor = style.inlineCode.foregroundColor
-        string.backgroundColor = style.inlineCode.backgroundColor
+        string.font = styleSheet.inlineCode.font
+        string.paragraphStyle = styleSheet.inlineCode.paragraphStyle
+        string.foregroundColor = styleSheet.inlineCode.foregroundColor
+        string.backgroundColor = styleSheet.inlineCode.backgroundColor
         string.kern = 1
         return string
     }
@@ -84,42 +84,44 @@ extension Visitor: MarkupVisitor {
         }
 
         var heading = AttributedString("\u{00a0}\n")
-        heading.backgroundColor = style.codeBlock.backgroundColor
-        heading.paragraphStyle = style.codeBlock.paragraphStyle
-        heading.font = style.codeBlock.font
+        heading.backgroundColor = styleSheet.codeBlock.backgroundColor
+        heading.paragraphStyle = styleSheet.codeBlock.paragraphStyle
+        heading.font = styleSheet.codeBlock.font
 
         var tailing = AttributedString()
         tailing.append(AttributedString.blankLine(withLineHeight: 0))
         tailing.append(AttributedString("\n"))
 
-        tailing.backgroundColor = style.codeBlock.backgroundColor
-        tailing.paragraphStyle = style.codeBlock.paragraphStyle
-        tailing.font = style.codeBlock.font
+        tailing.backgroundColor = styleSheet.codeBlock.backgroundColor
+        tailing.paragraphStyle = styleSheet.codeBlock.paragraphStyle
+        tailing.font = styleSheet.codeBlock.font
 
         var string = AttributedString()
-        string += DGSyntaxHighlighter.highlighted(string: codeBlock.code, identifier: identifier)
 
-        guard let paragraphStyle = style.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
+        let highlighter = DGSyntaxHighlighter(identifier: identifier)
+        string += highlighter.highlighted(string: codeBlock.code, options: .all)
+
+        guard let paragraphStyle = styleSheet.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
         paragraphStyle.alignment = .left
-        paragraphStyle.firstLineHeadIndent = style.codeBlock.indent
-        paragraphStyle.headIndent = style.codeBlock.indent
-        paragraphStyle.tailIndent = -style.codeBlock.indent
-        paragraphStyle.lineSpacing = style.codeBlock.lineSpacing
+        paragraphStyle.firstLineHeadIndent = styleSheet.codeBlock.indent
+        paragraphStyle.headIndent = styleSheet.codeBlock.indent
+        paragraphStyle.tailIndent = -styleSheet.codeBlock.indent
+        paragraphStyle.lineSpacing = styleSheet.codeBlock.lineSpacing
 
         string.paragraphStyle = paragraphStyle
-        string.backgroundColor = style.codeBlock.backgroundColor
-        string.baselineOffset = -style.codeBlock.lineSpacing
+        string.backgroundColor = styleSheet.codeBlock.backgroundColor
+        string.baselineOffset = -styleSheet.codeBlock.lineSpacing
 
-        return heading + string + tailing
+        return heading + string + tailing + "\n"
     }
     
     mutating func visitHeading(_ heading: Heading) -> AttributedString {
         let headingStyle: HeadingStyle
         switch heading.level {
-        case 1: headingStyle = style.h1
-        case 2: headingStyle = style.h2
-        case 3: headingStyle = style.h3
-        default: headingStyle = style.h4
+        case 1: headingStyle = styleSheet.h1
+        case 2: headingStyle = styleSheet.h2
+        case 3: headingStyle = styleSheet.h3
+        default: headingStyle = styleSheet.h4
         }
         var string = AttributedString(heading.plainText)
         string.font = headingStyle.font
@@ -137,7 +139,7 @@ extension Visitor: MarkupVisitor {
     
     mutating func visitStrong(_ strong: Strong) -> AttributedString {
         var string = defaultVisit(strong)
-        string.font = style.strong.font
+        string.font = styleSheet.strong.font
         return string
     }
     
@@ -187,17 +189,17 @@ extension Visitor: MarkupVisitor {
         let spacing = String(repeating: " ", count: 2*depth)
         var string = AttributedString("\(spacing)\(prefix) ")
         string += defaultVisit(listItem)
-        string.font = style.listItem.font
-        string.paragraphStyle = style.listItem.paragraphStyle
-        string.foregroundColor = style.listItem.foregroundColor
+        string.font = styleSheet.listItem.font
+        string.paragraphStyle = styleSheet.listItem.paragraphStyle
+        string.foregroundColor = styleSheet.listItem.foregroundColor
         return string
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> AttributedString {
         var string = AttributedString("\n\u{00a0}\n")
         string.strikethroughStyle = .single
-        string.strikethroughColor = style.thematicBreak.foregroundColor
-        string.font = style.thematicBreak.font
+        string.strikethroughColor = styleSheet.thematicBreak.foregroundColor
+        string.font = styleSheet.thematicBreak.font
         return string
     }
     
@@ -245,26 +247,26 @@ extension Visitor: MarkupVisitor {
         }
 
         var string = AttributedString(html)
-        string.font = style.table.font
-        string.foregroundColor = style.table.foregroundColor
-        string.appendBlankLine(withLineHeight: style.table.paragraphSpacing)
+        string.font = styleSheet.table.font
+        string.foregroundColor = styleSheet.table.foregroundColor
+        string.appendBlankLine(withLineHeight: styleSheet.table.paragraphSpacing)
         return string
     }
 
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
         var heading = AttributedString("❝ ")
         heading.font = Font.systemFont(ofSize: 32)
-        heading.foregroundColor = style.blockQuote.foregroundColor
-        heading.backgroundColor = style.blockQuote.backgroundColor
+        heading.foregroundColor = styleSheet.blockQuote.foregroundColor
+        heading.backgroundColor = styleSheet.blockQuote.backgroundColor
 
         var body = defaultVisit(blockQuote)
-        body.font = style.blockQuote.font
-        body.foregroundColor = style.blockQuote.foregroundColor
-        body.backgroundColor = style.blockQuote.backgroundColor
+        body.font = styleSheet.blockQuote.font
+        body.foregroundColor = styleSheet.blockQuote.foregroundColor
+        body.backgroundColor = styleSheet.blockQuote.backgroundColor
 
         let string = heading + body
 
-        guard let paragraphStyle = style.blockQuote.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
+        guard let paragraphStyle = styleSheet.blockQuote.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
 
         let attributedString = NSMutableAttributedString(string)
 
