@@ -13,6 +13,7 @@ class ViewController: NSViewController {
 
     @IBOutlet var editTextView: NSTextView!
     @IBOutlet var previewTextView: NSTextView!
+    
 }
 
 extension ViewController: NSTextViewDelegate {

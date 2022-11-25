@@ -23,9 +23,9 @@ public typealias Color = UIColor
 public struct StyleSheet {
     
     #if canImport(Cocoa)
-    public var textColor = NSColor.textColor
+    private let textColor = Color.textColor
     #else
-    public var textColor = UIColor.label
+    private let textColor = Color.label
     #endif
     
     public var document: DocumentStyle
