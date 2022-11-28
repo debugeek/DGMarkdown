@@ -140,6 +140,7 @@ extension Visitor: MarkupVisitor {
     mutating func visitStrong(_ strong: Strong) -> AttributedString {
         var string = defaultVisit(strong)
         string.font = styleSheet.strong.font
+        string.foregroundColor = styleSheet.strong.foregroundColor
         return string
     }
     
