@@ -117,7 +117,8 @@ extension Markup {
 }
 ```
 """
-        let attributedString = DGMarkdown.attributedString(fromMarkdownText: text, style: Style())
+        let markdown = DGMarkdown()
+        let attributedString = markdown.attributedString(fromMarkdownText: text)
         textView.attributedText = NSAttributedString(attributedString)
     }
 
