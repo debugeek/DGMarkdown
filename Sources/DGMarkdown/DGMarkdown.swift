@@ -9,14 +9,40 @@
 import Foundation
 import Markdown
 
-public struct DGMarkdown {
-        
-    public var debugEnabled = false
+#if canImport(Cocoa)
+import Cocoa
+#else
+import UIKit
+#endif
 
-    public var styleSheet = StyleSheet()
+public protocol DGMarkdownDelegate: AnyObject {
 
-    public init() {}
+#if canImport(Cocoa)
+    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: NSImage, bounds: CGRect)?) -> Void)
+#else
+    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: UIImage, bounds: CGRect)?) -> Void)
+#endif
+
+    func invalidateLayout()
     
+}
+
+public struct DGMarkdown {
+
+    public let debugEnabled: Bool
+
+    public let styleSheet: StyleSheet
+
+    private weak var delegate: DGMarkdownDelegate?
+
+    public init(delegate: DGMarkdownDelegate?,
+                styleSheet: StyleSheet = StyleSheet(),
+                debugEnabled: Bool = false) {
+        self.delegate = delegate
+        self.styleSheet = styleSheet
+        self.debugEnabled = debugEnabled
+    }
+
     public func attributedString(fromMarkdownText text: String) -> AttributedString {
         let document = Document(parsing: text)
         
@@ -26,7 +52,7 @@ public struct DGMarkdown {
         }
         #endif
         
-        var visitor = Visitor(styleSheet: styleSheet)
+        var visitor = Visitor(delegate: delegate, styleSheet: styleSheet)
         let attributedString = visitor.visit(document)
         return attributedString
     }

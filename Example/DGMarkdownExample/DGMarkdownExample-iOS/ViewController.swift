@@ -117,11 +117,28 @@ extension Markup {
 }
 ```
 """
-        let markdown = DGMarkdown()
+        let markdown = DGMarkdown(delegate: self)
         let attributedString = markdown.attributedString(fromMarkdownText: text)
         textView.attributedText = NSAttributedString(attributedString)
     }
 
-
 }
 
+extension ViewController: DGMarkdownDelegate {
+
+    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: UIImage, bounds: CGRect)?) -> Void) {
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.sync {
+                    let result = (image, CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
+                    completion(result)
+                }
+            }
+        }
+    }
+
+    func invalidateLayout() {
+        textView.layoutManager.invalidateLayout(forCharacterRange: NSMakeRange(0, textView.attributedText.length), actualCharacterRange: nil)
+    }
+
+}

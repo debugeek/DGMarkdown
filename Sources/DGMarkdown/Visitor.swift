@@ -19,7 +19,14 @@ import UIKit
 struct Visitor {
     
     let styleSheet: StyleSheet
-    
+
+    weak var delegate: DGMarkdownDelegate?
+
+    init(delegate: DGMarkdownDelegate?,
+         styleSheet: StyleSheet = StyleSheet()) {
+        self.styleSheet = styleSheet
+        self.delegate = delegate
+    }
 }
 
 extension Visitor: MarkupVisitor {
@@ -326,20 +333,26 @@ extension Visitor: MarkupVisitor {
         return AttributedString(attributedString)
     }
     
-    mutating func visitImage(_ image: Image) -> AttributedString {
-        guard let source = image.source else {
+    func visitImage(_ image: Image) -> AttributedString {
+        guard let source = image.source,
+              let url = URL(string: source) else {
             return AttributedString(image.plainText)
         }
-        
-        let data = Data("""
-        <img src="\(source)">
-        """.utf8)
+
+        let attachment = NSTextAttachment()
+
+        let attributedString = AttributedString(NSAttributedString(attachment: attachment))
+
+        delegate?.fetchImage(withURL: url, title: image.title, completion: { result in
+            guard let result = result else { return }
+
+            attachment.image = result.image
+            attachment.bounds = result.bounds
             
-        guard let attributedString = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
-            return AttributedString(image.plainText)
-        }
-        
-        return AttributedString(attributedString)
+            delegate?.invalidateLayout()
+        })
+
+        return attributedString
     }
     
     mutating func visitHTMLBlock(_ html: HTMLBlock) -> AttributedString {
