@@ -28,19 +28,17 @@ extension ViewController: NSTextViewDelegate {
 
 extension ViewController: DGMarkdownDelegate {
 
-    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: NSImage, bounds: CGRect)?) -> Void) {
+    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
         DispatchQueue.global().async {
             if let image = NSImage(contentsOf: url) {
+                attachment.image = image
+                attachment.bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
                 DispatchQueue.main.sync {
-                    let result = (image, CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
-                    completion(result)
+                    let characterRange = NSMakeRange(0, self.previewTextView.attributedString().length)
+                    self.previewTextView.layoutManager?.invalidateLayout(forCharacterRange: characterRange, actualCharacterRange: nil)
                 }
             }
         }
-    }
-
-    func invalidateLayout() {
-        self.previewTextView.layoutManager?.invalidateLayout(forCharacterRange: NSMakeRange(0, self.previewTextView.attributedString().length), actualCharacterRange: nil)
     }
 
 }

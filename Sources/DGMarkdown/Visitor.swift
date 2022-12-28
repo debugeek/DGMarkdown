@@ -339,20 +339,37 @@ extension Visitor: MarkupVisitor {
             return AttributedString(image.plainText)
         }
 
-        let attachment = NSTextAttachment()
+        if let processImage = delegate?.processImage {
+            let attachment = NSTextAttachment()
+            processImage(url, image.title, attachment)
+            let attributedString = AttributedString(NSAttributedString(attachment: attachment))
+            return attributedString
+        } else {
+            guard let data = """
+            <html>
+            <body>
+            <div>
+            <img src="\(url)">
+            </div>
+            </body>
+            </html>
+            """.data(using: String.Encoding.utf16, allowLossyConversion: false) else {
+                return AttributedString(image.plainText)
+            }
 
-        let attributedString = AttributedString(NSAttributedString(attachment: attachment))
+            var options = [NSAttributedString.DocumentReadingOptionKey: Any]()
+            options[.documentType] = NSAttributedString.DocumentType.html
 
-        delegate?.fetchImage(withURL: url, title: image.title, completion: { result in
-            guard let result = result else { return }
+            #if canImport(Cocoa)
+            options[.baseURL] = url
+            #endif
 
-            attachment.image = result.image
-            attachment.bounds = result.bounds
-            
-            delegate?.invalidateLayout()
-        })
+            guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
+                return AttributedString(image.plainText)
+            }
 
-        return attributedString
+            return AttributedString(attributedString)
+        }
     }
     
     mutating func visitHTMLBlock(_ html: HTMLBlock) -> AttributedString {

@@ -16,7 +16,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        
+
         let text = """
 # h1 Heading
 ## h2 Heading
@@ -126,19 +126,17 @@ extension Markup {
 
 extension ViewController: DGMarkdownDelegate {
 
-    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: UIImage, bounds: CGRect)?) -> Void) {
+    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
         DispatchQueue.global().async {
             if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                attachment.image = image
+                attachment.bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
                 DispatchQueue.main.sync {
-                    let result = (image, CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
-                    completion(result)
+                    let characterRange = NSMakeRange(0, self.textView.attributedText.length)
+                    self.textView.layoutManager.invalidateLayout(forCharacterRange: characterRange, actualCharacterRange: nil)
                 }
             }
         }
-    }
-
-    func invalidateLayout() {
-        textView.layoutManager.invalidateLayout(forCharacterRange: NSMakeRange(0, textView.attributedText.length), actualCharacterRange: nil)
     }
 
 }

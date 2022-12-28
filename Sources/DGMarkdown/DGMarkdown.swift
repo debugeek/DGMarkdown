@@ -10,20 +10,14 @@ import Foundation
 import Markdown
 
 #if canImport(Cocoa)
-import Cocoa
+import AppKit
 #else
 import UIKit
 #endif
 
 public protocol DGMarkdownDelegate: AnyObject {
 
-#if canImport(Cocoa)
-    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: NSImage, bounds: CGRect)?) -> Void)
-#else
-    func fetchImage(withURL url: URL, title: String?, completion: @escaping ((image: UIImage, bounds: CGRect)?) -> Void)
-#endif
-
-    func invalidateLayout()
+    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment)
     
 }
 
@@ -35,7 +29,7 @@ public struct DGMarkdown {
 
     private weak var delegate: DGMarkdownDelegate?
 
-    public init(delegate: DGMarkdownDelegate?,
+    public init(delegate: DGMarkdownDelegate? = nil,
                 styleSheet: StyleSheet = StyleSheet(),
                 debugEnabled: Bool = false) {
         self.delegate = delegate
