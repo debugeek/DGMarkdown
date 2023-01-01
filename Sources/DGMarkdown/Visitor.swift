@@ -78,7 +78,6 @@ extension Visitor: MarkupVisitor {
         string.paragraphStyle = styleSheet.inlineCode.paragraphStyle
         string.foregroundColor = styleSheet.inlineCode.foregroundColor
         string.backgroundColor = styleSheet.inlineCode.backgroundColor
-        string.kern = 1
         return string
     }
     
