@@ -25,12 +25,12 @@ public struct DGMarkdown {
 
     public let debugEnabled: Bool
 
-    public let styleSheet: StyleSheet
+    public let styleSheet: DGMarkdownStyleSheet
 
     private weak var delegate: DGMarkdownDelegate?
 
     public init(delegate: DGMarkdownDelegate? = nil,
-                styleSheet: StyleSheet = StyleSheet(),
+                styleSheet: DGMarkdownStyleSheet = DGMarkdownStyleSheet(),
                 debugEnabled: Bool = false) {
         self.delegate = delegate
         self.styleSheet = styleSheet

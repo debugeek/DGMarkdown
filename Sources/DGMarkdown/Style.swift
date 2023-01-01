@@ -20,7 +20,7 @@ public typealias Font = UIFont
 public typealias Color = UIColor
 #endif
 
-public struct StyleSheet {
+public struct DGMarkdownStyleSheet {
     
     #if canImport(Cocoa)
     private let textColor = Color.textColor
@@ -173,40 +173,40 @@ public struct ParagraphStyle {
 }
 
 public struct TextStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
     
 }
 
 public struct HeadingStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
     public var lineBreakHeight: CGFloat
 }
 
 public struct LinkStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
 }
 
 public struct StrongStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
 }
 
 public struct InlineCodeStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
     public var backgroundColor: Color?
 }
 
 public struct CodeBlockStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
     public var backgroundColor: Color?
@@ -215,24 +215,24 @@ public struct CodeBlockStyle {
 }
 
 public struct ListItemStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
 }
 
 public struct ThematicBreakStyle {
-    public var font: Font
+    public var font: Font?
     public var foregroundColor: Color?
 }
 
 public struct TableStyle {
-    public var font: Font
+    public var font: Font?
     public var foregroundColor: Color?
     public var paragraphSpacing: CGFloat
 }
 
 public struct BlockQuoteStyle {
-    public var font: Font
+    public var font: Font?
     public var paragraphStyle: NSParagraphStyle
     public var foregroundColor: Color?
     public var backgroundColor: Color?

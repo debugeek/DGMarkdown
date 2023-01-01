@@ -18,12 +18,12 @@ import UIKit
 
 struct Visitor {
     
-    let styleSheet: StyleSheet
+    let styleSheet: DGMarkdownStyleSheet
 
     weak var delegate: DGMarkdownDelegate?
 
     init(delegate: DGMarkdownDelegate?,
-         styleSheet: StyleSheet = StyleSheet()) {
+         styleSheet: DGMarkdownStyleSheet = DGMarkdownStyleSheet()) {
         self.styleSheet = styleSheet
         self.delegate = delegate
     }
@@ -105,7 +105,16 @@ extension Visitor: MarkupVisitor {
 
         var string = AttributedString()
 
-        let highlighter = DGSyntaxHighlighter(identifier: identifier)
+        let highlighter = DGSyntaxHighlighter(identifier: identifier, styleSheet: { () -> DGSyntaxHighlighterStyleSheet in
+            var styleSheet = DGSyntaxHighlighterStyleSheet()
+            styleSheet.text.font = self.styleSheet.codeBlock.font
+            styleSheet.keyword.font = self.styleSheet.codeBlock.font
+            styleSheet.string.font = self.styleSheet.codeBlock.font
+            styleSheet.comment.font = self.styleSheet.codeBlock.font
+            styleSheet.emphasis.font = self.styleSheet.codeBlock.font
+            styleSheet.link.font = self.styleSheet.codeBlock.font
+            return styleSheet
+        }())
         string += highlighter.highlighted(string: codeBlock.code, options: .all)
 
         guard let paragraphStyle = styleSheet.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
