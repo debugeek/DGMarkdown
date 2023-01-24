@@ -119,7 +119,7 @@ extension Markup {
 """
         let markdown = DGMarkdown(delegate: self)
         let attributedString = markdown.attributedString(fromMarkdownText: text)
-        textView.attributedText = NSAttributedString(attributedString)
+        textView.attributedText = attributedString
     }
 
 }

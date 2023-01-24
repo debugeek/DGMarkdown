@@ -24,8 +24,10 @@ public struct DGMarkdownStyleSheet {
     
     #if canImport(Cocoa)
     private let textColor = Color.textColor
+    private let secondaryColor = Color.secondaryLabelColor
     #else
     private let textColor = Color.label
+    private let secondaryColor = Color.secondaryLabel
     #endif
     
     public var document: DocumentStyle
@@ -38,6 +40,8 @@ public struct DGMarkdownStyleSheet {
     public var h4: HeadingStyle
     public var link: LinkStyle
     public var strong: StrongStyle
+    public var italic: ItalicStyle
+    public var strikethrough: StrikethroughStyle
     public var inlineCode: InlineCodeStyle
     public var codeBlock: CodeBlockStyle
     public var listItem: ListItemStyle
@@ -58,7 +62,8 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            text = TextStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+            paragraphStyle.lineSpacing = 4
+            text = TextStyle(font: Font.systemFont(ofSize: 16),
                              paragraphStyle: paragraphStyle,
                              foregroundColor: textColor)
         }
@@ -108,14 +113,28 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            strong = StrongStyle(font: Font.systemFont(ofSize: 16, weight: .bold),
+            strong = StrongStyle(font: Font.systemFont(ofSize: 16).withBold(),
                                  paragraphStyle: paragraphStyle,
                                  foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            inlineCode = InlineCodeStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+            italic = ItalicStyle(font: Font.systemFont(ofSize: 16).withItalic(),
+                                 paragraphStyle: paragraphStyle,
+                                 foregroundColor: textColor)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            strikethrough = StrikethroughStyle(font: Font.systemFont(ofSize: 16),
+                                               paragraphStyle: paragraphStyle,
+                                               foregroundColor: textColor)
+        }
+        
+        do {
+            let paragraphStyle = NSMutableParagraphStyle()
+            inlineCode = InlineCodeStyle(font: Font.systemFont(ofSize: 16),
                                          paragraphStyle: paragraphStyle,
                                          foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                          backgroundColor: Color.color(withHex: 0x161616))
@@ -123,7 +142,7 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            codeBlock = CodeBlockStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+            codeBlock = CodeBlockStyle(font: Font.systemFont(ofSize: 16),
                                        paragraphStyle: paragraphStyle,
                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                        backgroundColor: Color.color(withHex: 0x161616),
@@ -133,27 +152,26 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            listItem = ListItemStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+            listItem = ListItemStyle(font: Font.systemFont(ofSize: 16),
                                      paragraphStyle: paragraphStyle,
                                      foregroundColor: textColor)
         }
         
         do {
-            thematicBreak = ThematicBreakStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
+            thematicBreak = ThematicBreakStyle(font: Font.systemFont(ofSize: 16),
                                                foregroundColor: textColor)
         }
         
         do {
-            table = TableStyle(font: Font.systemFont(ofSize: 16, weight: .regular),
-                               foregroundColor: textColor,
-                               paragraphSpacing: 16)
+            table = TableStyle(font: Font.systemFont(ofSize: 16),
+                               foregroundColor: textColor)
         }
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            blockQuote = BlockQuoteStyle(font: Font.systemFont(ofSize: 16, weight: .regular).italic(),
+            blockQuote = BlockQuoteStyle(font: Font.systemFont(ofSize: 16, weight: .regular).withItalic(),
                                          paragraphStyle: paragraphStyle,
-                                         foregroundColor: textColor,
+                                         foregroundColor: secondaryColor,
                                          backgroundColor: .clear)
         }
         
@@ -198,6 +216,18 @@ public struct StrongStyle {
     public var foregroundColor: Color?
 }
 
+public struct ItalicStyle {
+    public var font: Font?
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+}
+
+public struct StrikethroughStyle {
+    public var font: Font?
+    public var paragraphStyle: NSParagraphStyle
+    public var foregroundColor: Color?
+}
+
 public struct InlineCodeStyle {
     public var font: Font?
     public var paragraphStyle: NSParagraphStyle
@@ -228,7 +258,6 @@ public struct ThematicBreakStyle {
 public struct TableStyle {
     public var font: Font?
     public var foregroundColor: Color?
-    public var paragraphSpacing: CGFloat
 }
 
 public struct BlockQuoteStyle {

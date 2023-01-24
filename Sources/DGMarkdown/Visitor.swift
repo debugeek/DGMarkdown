@@ -27,61 +27,71 @@ struct Visitor {
         self.styleSheet = styleSheet
         self.delegate = delegate
     }
+    
+    private var blockQuoteDepth = 0
+    private var listItemDepth = 0
+    
 }
 
 extension Visitor: MarkupVisitor {
     
-    typealias Result = AttributedString
+    typealias Result = NSMutableAttributedString
     
-    mutating func defaultVisit(_ markup: Markup) -> AttributedString {
+    mutating func defaultVisit(_ markup: Markup) -> Result {
         return markup.children
             .compactMap { visit($0) }
-            .reduce(into: AttributedString()) { $0.append($1) }
+            .reduce(into: NSMutableAttributedString()) { $0 += $1 }
     }
 
-    mutating func visitDocument(_ document: Document) -> AttributedString {
-        var string = AttributedString("\n")
+    mutating func visitDocument(_ document: Document) -> Result {
+        let string = NSMutableAttributedString()
+        string.appendLineBreak()
         string += defaultVisit(document)
         return string
     }
 
-    mutating func visitParagraph(_ paragraph: Paragraph) -> AttributedString {
-        var string = defaultVisit(paragraph)
+    mutating func visitParagraph(_ paragraph: Paragraph) -> Result {
+        let string = NSMutableAttributedString()
+        string += defaultVisit(paragraph)
+        string.appendLineBreak()
         string.appendBlankLine(withLineHeight: styleSheet.paragraph.lineBreakHeight)
+        string.appendLineBreak()
         return string
     }
     
-    mutating func visitSoftBreak(_ softBreak: SoftBreak) -> AttributedString {
-        var string = AttributedString()
+    mutating func visitSoftBreak(_ softBreak: SoftBreak) -> Result {
+        let string = NSMutableAttributedString()
         string.appendBlankLine(withLineHeight: styleSheet.softBreak.lineBreakHeight)
-        string.inlinePresentationIntent = .softBreak
+        string.appendLineBreak()
         return string
     }
     
-    mutating func visitLineBreak(_ lineBreak: LineBreak) -> AttributedString {
-        var string = AttributedString("\n")
-        string.inlinePresentationIntent = .lineBreak
+    mutating func visitLineBreak(_ lineBreak: LineBreak) -> Result {
+        let string = NSMutableAttributedString()
+        string.appendLineBreak()
         return string
     }
     
-    func visitText(_ text: Text) -> AttributedString {
-        var string = AttributedString(text.plainText)
-        string.font = styleSheet.text.font
-        string.paragraphStyle = styleSheet.text.paragraphStyle
-        string.foregroundColor = styleSheet.text.foregroundColor
+    mutating func visitText(_ text: Text) -> Result {
+        let string = NSMutableAttributedString()
+        string += text.plainText
+        string.mergeAttributes([.font: styleSheet.text.font as Any,
+                                .foregroundColor: styleSheet.text.foregroundColor as Any,
+                                .paragraphStyle: styleSheet.text.paragraphStyle])
         return string
     }
     
-    func visitInlineCode(_ inlineCode: InlineCode) -> AttributedString {
-        var string = AttributedString(" \(inlineCode.code) ")
-        string.font = styleSheet.inlineCode.font
-        string.paragraphStyle = styleSheet.inlineCode.paragraphStyle
-        string.foregroundColor = styleSheet.inlineCode.foregroundColor
-        string.backgroundColor = styleSheet.inlineCode.backgroundColor
+    mutating func visitInlineCode(_ inlineCode: InlineCode) -> Result {
+        let string = NSMutableAttributedString()
+        string += " \(inlineCode.code) "
+        string.mergeAttributes([.font: styleSheet.inlineCode.font as Any,
+                                .foregroundColor: styleSheet.inlineCode.foregroundColor as Any,
+                                .backgroundColor: styleSheet.inlineCode.backgroundColor as Any,
+                                .paragraphStyle: styleSheet.inlineCode.paragraphStyle])
         return string
     }
     
-    func visitCodeBlock(_ codeBlock: CodeBlock) -> AttributedString {
+    mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> Result {
         let identifier: DGSyntaxHighlighter.Identifier
         if let language = codeBlock.language {
             identifier = .init(rawValue: language) ?? .plain
@@ -89,22 +99,21 @@ extension Visitor: MarkupVisitor {
             identifier = .plain
         }
 
-        var heading = AttributedString("\u{00a0}\n")
-        heading.backgroundColor = styleSheet.codeBlock.backgroundColor
-        heading.paragraphStyle = styleSheet.codeBlock.paragraphStyle
-        heading.font = styleSheet.codeBlock.font
+        let heading = NSMutableAttributedString()
+        heading += "\u{00A0}\n"
+        heading.setAttributes([.font: styleSheet.codeBlock.font as Any,
+                               .backgroundColor: styleSheet.codeBlock.backgroundColor as Any,
+                               .paragraphStyle: styleSheet.codeBlock.paragraphStyle], range: NSRange(0..<heading.length))
 
-        var tailing = AttributedString()
-        tailing.append(AttributedString.blankLine(withLineHeight: 0))
-        tailing.append(AttributedString("\n"))
+        let tailing = NSMutableAttributedString()
+        tailing.appendBlankLine(withLineHeight: 0)
+        tailing.appendLineBreak()
+        tailing.setAttributes([.font: styleSheet.codeBlock.font as Any,
+                               .backgroundColor: styleSheet.codeBlock.backgroundColor as Any,
+                               .paragraphStyle: styleSheet.codeBlock.paragraphStyle], range: NSRange(0..<heading.length))
 
-        tailing.backgroundColor = styleSheet.codeBlock.backgroundColor
-        tailing.paragraphStyle = styleSheet.codeBlock.paragraphStyle
-        tailing.font = styleSheet.codeBlock.font
-
-        var string = AttributedString()
-
-        let highlighter = DGSyntaxHighlighter(identifier: identifier, styleSheet: { () -> DGSyntaxHighlighterStyleSheet in
+        let code = NSMutableAttributedString()
+        code += DGSyntaxHighlighter(identifier: identifier, styleSheet: { () -> DGSyntaxHighlighterStyleSheet in
             var styleSheet = DGSyntaxHighlighterStyleSheet()
             styleSheet.text.font = self.styleSheet.codeBlock.font
             styleSheet.keyword.font = self.styleSheet.codeBlock.font
@@ -113,24 +122,27 @@ extension Visitor: MarkupVisitor {
             styleSheet.emphasis.font = self.styleSheet.codeBlock.font
             styleSheet.link.font = self.styleSheet.codeBlock.font
             return styleSheet
-        }())
-        string += highlighter.highlighted(string: codeBlock.code, options: .all)
+        }()).highlighted(string: codeBlock.code, options: .all)
 
-        guard let paragraphStyle = styleSheet.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
+        guard let paragraphStyle = styleSheet.codeBlock.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return defaultVisit(codeBlock) }
         paragraphStyle.alignment = .left
         paragraphStyle.firstLineHeadIndent = styleSheet.codeBlock.indent
         paragraphStyle.headIndent = styleSheet.codeBlock.indent
         paragraphStyle.tailIndent = -styleSheet.codeBlock.indent
         paragraphStyle.lineSpacing = styleSheet.codeBlock.lineSpacing
-
-        string.paragraphStyle = paragraphStyle
-        string.backgroundColor = styleSheet.codeBlock.backgroundColor
-        string.baselineOffset = -styleSheet.codeBlock.lineSpacing
-
-        return heading + string + tailing + "\n"
+        code.addAttributes([.paragraphStyle: paragraphStyle as Any,
+                              .backgroundColor: styleSheet.codeBlock.backgroundColor as Any,
+                              .baselineOffset: -styleSheet.codeBlock.lineSpacing], range: NSRange(0..<code.length))
+        
+        let string = NSMutableAttributedString()
+        string += heading
+        string += code
+        string += tailing
+        string.appendLineBreak()
+        return string
     }
     
-    mutating func visitHeading(_ heading: Heading) -> AttributedString {
+    mutating func visitHeading(_ heading: Heading) -> Result {
         let headingStyle: HeadingStyle
         switch heading.level {
         case 1: headingStyle = styleSheet.h1
@@ -138,51 +150,49 @@ extension Visitor: MarkupVisitor {
         case 3: headingStyle = styleSheet.h3
         default: headingStyle = styleSheet.h4
         }
-        var string = AttributedString(heading.plainText)
-        string.font = headingStyle.font
-        string.paragraphStyle = headingStyle.paragraphStyle
-        string.foregroundColor = headingStyle.foregroundColor
+        let string = NSMutableAttributedString()
+        string += defaultVisit(heading)
+        string.mergeAttributes([.font: headingStyle.font as Any,
+                                .foregroundColor: headingStyle.foregroundColor as Any,
+                                .paragraphStyle: headingStyle.paragraphStyle])
         string.appendLineBreak()
         return string
     }
     
-    mutating func visitEmphasis(_ emphasis: Emphasis) -> AttributedString {
-        var string = defaultVisit(emphasis)
-        string.inlinePresentationIntent = .emphasized
+    mutating func visitEmphasis(_ emphasis: Emphasis) -> Result {
+        let string = NSMutableAttributedString()
+        string += defaultVisit(emphasis)
+        string.mergeAttributes([.font: styleSheet.italic.font as Any])
         return string
     }
     
-    mutating func visitStrong(_ strong: Strong) -> AttributedString {
-        var string = defaultVisit(strong)
-        string.font = styleSheet.strong.font
-        string.foregroundColor = styleSheet.strong.foregroundColor
+    mutating func visitStrong(_ strong: Strong) -> Result {
+        let string = NSMutableAttributedString()
+        string += defaultVisit(strong)
+        string.mergeAttributes([.font: styleSheet.strong.font as Any])
         return string
     }
     
-    mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> AttributedString {
-        var string = defaultVisit(strikethrough)
-        string.inlinePresentationIntent = .strikethrough
-        string.strikethroughStyle = .single
+    mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> Result {
+        let string = NSMutableAttributedString()
+        string += defaultVisit(strikethrough)
+        string.mergeAttributes([.font: styleSheet.strikethrough.font as Any,
+                                .strikethroughStyle: 1])
         return string
     }
     
-    mutating func visitLink(_ link: Link) -> AttributedString {
-        var string = defaultVisit(link)
+    mutating func visitLink(_ link: Link) -> Result {
+        let string = NSMutableAttributedString()
+        string += defaultVisit(link)
         if let destination = link.destination, let link = URL(string: destination) {
-            string.link = link
+            string.mergeAttributes([.link: link as Any])
         }
         return string
     }
     
-    mutating func visitListItem(_ listItem: ListItem) -> AttributedString {
-        var depth = 0
-        var parent = listItem.parent
-        while parent != nil {
-            if parent is ListItem {
-                depth += 1
-            }
-            parent = parent?.parent
-        }
+    mutating func visitListItem(_ listItem: ListItem) -> Result {
+        listItemDepth += 1
+        defer { listItemDepth -= 1 }
         
         let prefix: String
         if let checkbox = listItem.checkbox {
@@ -194,32 +204,35 @@ extension Visitor: MarkupVisitor {
         } else if listItem.parent is OrderedList {
             prefix = "\(listItem.indexInParent + 1)."
         } else {
-            switch depth {
-            case 0: prefix = "•"
+            switch listItemDepth {
             case 1: prefix = "•"
-            case 2: prefix = "⁃"
+            case 2: prefix = "•"
+            case 3: prefix = "⁃"
             default: prefix = "⁃"
             }
         }
         
-        let spacing = String(repeating: " ", count: 2*depth)
-        var string = AttributedString("\(spacing)\(prefix) ")
+        let string = NSMutableAttributedString()
+        string += String(repeating: " ", count: 2*listItemDepth)
+        string += prefix
+        string += " "
         string += defaultVisit(listItem)
-        string.font = styleSheet.listItem.font
-        string.paragraphStyle = styleSheet.listItem.paragraphStyle
-        string.foregroundColor = styleSheet.listItem.foregroundColor
+        string.mergeAttributes([.font: styleSheet.listItem.font as Any,
+                                .foregroundColor: styleSheet.listItem.foregroundColor as Any,
+                                .paragraphStyle: styleSheet.listItem.paragraphStyle])
         return string
     }
 
-    func visitThematicBreak(_ thematicBreak: ThematicBreak) -> AttributedString {
-        var string = AttributedString("\n\u{00a0}\n")
-        string.strikethroughStyle = .single
-        string.strikethroughColor = styleSheet.thematicBreak.foregroundColor
-        string.font = styleSheet.thematicBreak.font
+    func visitThematicBreak(_ thematicBreak: ThematicBreak) -> Result {
+        let string = NSMutableAttributedString()
+        string += "\u{00A0}\n"
+        string.setAttributes([.font: styleSheet.strikethrough.font as Any,
+                              .strikethroughColor: styleSheet.strikethrough.foregroundColor as Any,
+                              .strikethroughStyle: 1], range: NSRange(0..<string.length))
         return string
     }
     
-    mutating func visitTable(_ table: Table) -> AttributedString {
+    mutating func visitTable(_ table: Table) -> Result {
         guard let data = """
         <html>
         <head>
@@ -256,72 +269,58 @@ extension Visitor: MarkupVisitor {
         </table>
         </body>
         </html>
-        """.data(using: String.Encoding.utf16, allowLossyConversion: false) else { return AttributedString("") }
+        """.data(using: String.Encoding.utf16, allowLossyConversion: false) else { return NSMutableAttributedString() }
 
         guard let html = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
-            return AttributedString("")
+            return NSMutableAttributedString()
         }
 
-        var string = AttributedString(html)
-        string.font = styleSheet.table.font
-        string.foregroundColor = styleSheet.table.foregroundColor
-        string.appendBlankLine(withLineHeight: styleSheet.table.paragraphSpacing)
+        let string = NSMutableAttributedString()
+        string += html
+        string.mergeAttributes([.font: styleSheet.table.font as Any,
+                                .foregroundColor: styleSheet.table.foregroundColor as Any])
+        string.appendLineBreak()
         return string
     }
 
-    mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> AttributedString {
-        var heading = AttributedString("❝ ")
-        heading.font = Font.systemFont(ofSize: 32)
-        heading.foregroundColor = styleSheet.blockQuote.foregroundColor
-        heading.backgroundColor = styleSheet.blockQuote.backgroundColor
+    mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> Result {
+        blockQuoteDepth += 1
+        defer { blockQuoteDepth -= 1 }
 
-        var body = defaultVisit(blockQuote)
-        body.font = styleSheet.blockQuote.font
-        body.foregroundColor = styleSheet.blockQuote.foregroundColor
-        body.backgroundColor = styleSheet.blockQuote.backgroundColor
-
-        let string = heading + body
+        let string = defaultVisit(blockQuote)
+        string.mergeAttributes([.font: styleSheet.blockQuote.font as Any,
+                                .foregroundColor: styleSheet.blockQuote.foregroundColor as Any,
+                                .backgroundColor: styleSheet.blockQuote.backgroundColor as Any])
 
         guard let paragraphStyle = styleSheet.blockQuote.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
 
-        let attributedString = NSMutableAttributedString(string)
 
-        var depth = 0
-        var parent = blockQuote.parent
-        while parent != nil {
-            if parent is BlockQuote {
-                depth += 1
-            }
-            parent = parent?.parent
-        }
-
-        let indent = CGFloat(depth + 1)*20
+        let indent = CGFloat(blockQuoteDepth)*20
         paragraphStyle.tabStops = [NSTextTab(textAlignment: .left, location: indent, options: [:])]
         paragraphStyle.firstLineHeadIndent = indent
         paragraphStyle.headIndent = indent
 
-        var renderedRanges = [NSRange]()
-        attributedString.enumerateAttribute(.expansion, in: NSRange(0..<attributedString.length)) { value, range, stop in
-            if value != nil {
-                renderedRanges.append(range)
-            }
+        var indentedRanges = [NSRange]()
+        string.enumerateAttribute(.blockQuoteIndented, in: NSRange(0..<string.length)) { value, range, _ in
+            guard value != nil else { return }
+            indentedRanges.append(range)
         }
-
-        var unrenderedRanges: [NSRange] = [NSMakeRange(0, attributedString.length)]
+        
+        var unindentedRanges: [NSRange] = [NSRange(0..<string.length)]
         repeat {
             var matched = false
 
-            for renderedRange in renderedRanges {
-                for (index, unrenderedRange) in unrenderedRanges.enumerated() {
-                    guard renderedRange.intersection(unrenderedRange) != nil else {
+            for indentedRange in indentedRanges {
+                for (index, unindentedRange) in unindentedRanges.enumerated() {
+                    guard indentedRange.intersection(unindentedRange) != nil else {
                         continue
                     }
 
-                    unrenderedRanges.remove(at: index)
-                    unrenderedRanges.append(NSRange(location: min(unrenderedRange.lowerBound, renderedRange.lowerBound),
-                                                   length: abs(unrenderedRange.lowerBound - renderedRange.lowerBound)))
-                    unrenderedRanges.append(NSRange(location: min(unrenderedRange.upperBound, renderedRange.upperBound),
-                                                   length: abs(unrenderedRange.upperBound - renderedRange.upperBound)))
+                    unindentedRanges.remove(at: index)
+                    unindentedRanges.append(NSRange(location: min(unindentedRange.lowerBound, indentedRange.lowerBound),
+                                                   length: abs(unindentedRange.lowerBound - indentedRange.lowerBound)))
+                    unindentedRanges.append(NSRange(location: min(unindentedRange.upperBound, indentedRange.upperBound),
+                                                   length: abs(unindentedRange.upperBound - indentedRange.upperBound)))
 
                     matched = true
                     break
@@ -331,26 +330,26 @@ extension Visitor: MarkupVisitor {
             if !matched {
                 break
             }
-        } while unrenderedRanges.count > 0
+        } while unindentedRanges.count > 0
 
-        for unrenderedRange in unrenderedRanges {
-            attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: unrenderedRange)
-            attributedString.addAttribute(.expansion, value: CGFloat.leastNormalMagnitude, range: unrenderedRange)
+        for unindentedRange in unindentedRanges {
+            string.addAttribute(.paragraphStyle, value: paragraphStyle, range: unindentedRange)
+            string.addAttribute(.blockQuoteIndented, value: true, range: unindentedRange)
         }
-
-        return AttributedString(attributedString)
+        
+        return string
     }
     
-    func visitImage(_ image: Image) -> AttributedString {
+    mutating func visitImage(_ image: Image) -> Result {
         guard let source = image.source,
               let url = URL(string: source) else {
-            return AttributedString(image.plainText)
+            return defaultVisit(image)
         }
 
         if let processImage = delegate?.processImage {
             let attachment = NSTextAttachment()
             processImage(url, image.title, attachment)
-            let attributedString = AttributedString(NSAttributedString(attachment: attachment))
+            let attributedString = NSMutableAttributedString(attachment: attachment)
             return attributedString
         } else {
             guard let data = """
@@ -362,7 +361,7 @@ extension Visitor: MarkupVisitor {
             </body>
             </html>
             """.data(using: String.Encoding.utf16, allowLossyConversion: false) else {
-                return AttributedString(image.plainText)
+                return defaultVisit(image)
             }
 
             var options = [NSAttributedString.DocumentReadingOptionKey: Any]()
@@ -372,25 +371,39 @@ extension Visitor: MarkupVisitor {
             options[.baseURL] = url
             #endif
 
-            guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
-                return AttributedString(image.plainText)
+            guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
+                return defaultVisit(image)
             }
 
-            return AttributedString(attributedString)
+            attributedString.appendLineBreak()
+            return attributedString
         }
     }
     
-    mutating func visitHTMLBlock(_ html: HTMLBlock) -> AttributedString {
-        let data = Data("""
+    mutating func visitHTMLBlock(_ html: HTMLBlock) -> Result {
+        guard let data = """
+        <html>
+        <body>
         \(html.rawHTML)
-        """.utf8)
-            
-        guard let attributedString = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
+        </body>
+        </html>
+        """.data(using: String.Encoding.utf16, allowLossyConversion: false) else {
             return defaultVisit(html)
         }
-        
-        return AttributedString(attributedString) + "\n"
+
+        var options = [NSAttributedString.DocumentReadingOptionKey: Any]()
+        options[.documentType] = NSAttributedString.DocumentType.html
+
+        guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
+            return defaultVisit(html)
+        }
+
+        attributedString.appendLineBreak()
+        return attributedString
     }
 
 }
 
+extension NSAttributedString.Key {
+    static let blockQuoteIndented = NSAttributedString.Key(rawValue: "blockQuoteIndented")
+}

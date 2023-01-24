@@ -6,7 +6,6 @@
 //  Copyright © 2022 debugeek. All rights reserved.
 //
 
-import Markdown
 import Foundation
 
 #if canImport(Cocoa)
@@ -15,41 +14,56 @@ import Cocoa
 import UIKit
 #endif
 
-extension Markup {
-    
-    func isContained<T: Markup>(inMarkupWithType type: T.Type) -> Bool {
-        var parent = parent
-        while parent != nil {
-            if parent is T {
-                return true
+extension NSMutableAttributedString {
+
+    func mergeAttributes(_ attrs: [NSAttributedString.Key: Any], range: NSRange? = nil) {
+        let range = range ?? NSRange(0..<length)
+        for (key, newValue) in attrs {
+            enumerateAttribute(key, in: range) { oldValue, range, _ in
+                if oldValue == nil {
+                    addAttribute(key, value: newValue, range: range)
+                } else {
+                    if let newFont = newValue as? Font, let oldFont = oldValue as? Font {
+                        var font = newFont.pointSize > oldFont.pointSize ? newFont : oldFont
+                        if newFont.isBold() || oldFont.isBold() {
+                            font = font.withBold()
+                        }
+                        if newFont.isItalic() || oldFont.isItalic() {
+                            font = font.withItalic()
+                        }
+                        addAttribute(key, value: font, range: range)
+                    } else {
+                        addAttribute(key, value: newValue, range: range)
+                    }
+                }
             }
-            parent = parent?.parent
         }
-        return false
     }
     
-}
+    func appendLineBreak() {
+        self += "\n"
+    }
 
-extension AttributedString {
-
-    static func blankLine(withLineHeight lineHeight: CGFloat) -> AttributedString {
+    func appendBlankLine(withLineHeight lineHeight: CGFloat) {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = lineHeight
         paragraphStyle.maximumLineHeight = lineHeight
         
-        var string = AttributedString(" ")
-        string.paragraphStyle = paragraphStyle
-        return string
+        let string = NSMutableAttributedString(" ")
+        string.setAttributes([.paragraphStyle: paragraphStyle], range: NSRange(0..<string.length))
+        self += string
     }
-
-    mutating func appendLineBreak() {
-        self.append(AttributedString("\n"))
+    
+    static func += (lhs: NSMutableAttributedString, rhs: NSAttributedString) {
+        lhs.append(rhs)
     }
-
-    mutating func appendBlankLine(withLineHeight lineHeight: CGFloat) {
-        self.append(AttributedString("\n"))
-        self.append(AttributedString.blankLine(withLineHeight: lineHeight))
-        self.append(AttributedString("\n"))
+    
+    static func += (lhs: NSMutableAttributedString, rhs: String) {
+        lhs += NSAttributedString(string: rhs)
+    }
+    
+    static func += (lhs: NSMutableAttributedString, rhs: AttributedString) {
+        lhs += NSAttributedString(rhs)
     }
     
 }
@@ -60,28 +74,36 @@ extension NSFont {
     func withTraits(_ traits: NSFontDescriptor.SymbolicTraits ...) -> NSFont {
         let fontDescriptor = fontDescriptor.withSymbolicTraits(NSFontDescriptor.SymbolicTraits(traits).union(fontDescriptor.symbolicTraits))
         return NSFont(descriptor: fontDescriptor, size: 0) ?? self
-     }
+    }
     
     func withoutTraits(_ traits: NSFontDescriptor.SymbolicTraits ...) -> NSFont {
         let fontDescriptor = fontDescriptor.withSymbolicTraits(fontDescriptor.symbolicTraits.subtracting(NSFontDescriptor.SymbolicTraits(traits)))
         return NSFont(descriptor: fontDescriptor, size: 0) ?? self
-     }
+    }
     
-     func bold() -> NSFont {
-         return withTraits( .bold)
-     }
-
-     func italic() -> NSFont {
-         return withTraits(.italic)
-     }
-
-     func noItalic() -> NSFont {
-         return withoutTraits(.italic)
-     }
+    func isBold() -> Bool {
+        return fontDescriptor.symbolicTraits.contains(.bold)
+    }
     
-     func noBold() -> NSFont {
-         return withoutTraits(.bold)
-     }
+    func withBold() -> NSFont {
+        return withTraits(.bold)
+    }
+
+    func withoutBold() -> NSFont {
+        return withoutTraits(.bold)
+    }
+
+    func isItalic() -> Bool {
+        return fontDescriptor.symbolicTraits.contains(.italic)
+    }
+    
+    func withItalic() -> NSFont {
+        return withTraits(.italic)
+    }
+
+    func withoutItalic() -> NSFont {
+        return withoutTraits(.italic)
+    }
     
 }
 #else
@@ -95,27 +117,35 @@ extension UIFont {
      }
     
     func withoutTraits(_ traits: UIFontDescriptor.SymbolicTraits ...) -> UIFont {
-         guard let fontDescriptor = fontDescriptor.withSymbolicTraits(fontDescriptor.symbolicTraits.subtracting(UIFontDescriptor.SymbolicTraits(traits))) else {
-             return self
-         }
-         return UIFont(descriptor: fontDescriptor, size: 0)
-     }
+        guard let fontDescriptor = fontDescriptor.withSymbolicTraits(fontDescriptor.symbolicTraits.subtracting(UIFontDescriptor.SymbolicTraits(traits))) else {
+            return self
+        }
+        return UIFont(descriptor: fontDescriptor, size: 0)
+    }
     
-     func bold() -> UIFont {
-         return withTraits( .traitBold)
-     }
-
-     func italic() -> UIFont {
-         return withTraits(.traitItalic)
-     }
-
-     func noItalic() -> UIFont {
-         return withoutTraits(.traitItalic)
-     }
+    func isBold() -> Bool {
+        return fontDescriptor.symbolicTraits.contains(.traitBold)
+    }
     
-     func noBold() -> UIFont {
-         return withoutTraits(.traitBold)
-     }
+    func withBold() -> UIFont {
+        return withTraits(.traitBold)
+    }
+    
+    func withoutBold() -> UIFont {
+        return withoutTraits(.traitBold)
+    }
+    
+    func isItalic() -> Bool {
+        return fontDescriptor.symbolicTraits.contains(.traitItalic)
+    }
+    
+    func withItalic() -> UIFont {
+        return withTraits(.traitItalic)
+    }
+    
+    func withoutItalic() -> UIFont {
+        return withoutTraits(.traitItalic)
+    }
     
 }
 #endif

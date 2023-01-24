@@ -19,9 +19,9 @@ class ViewController: NSViewController {
 extension ViewController: NSTextViewDelegate {
     
     func textDidChange(_ notification: Notification) {
-        let markdown = DGMarkdown(delegate: self)
+        let markdown = DGMarkdown(delegate: self, debugEnabled: true)
         let attributedString = markdown.attributedString(fromMarkdownText: editTextView.string)
-        previewTextView.textStorage?.setAttributedString(NSAttributedString(attributedString))
+        previewTextView.textStorage?.setAttributedString(attributedString)
     }
     
 }

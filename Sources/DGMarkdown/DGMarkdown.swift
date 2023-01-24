@@ -37,7 +37,7 @@ public struct DGMarkdown {
         self.debugEnabled = debugEnabled
     }
 
-    public func attributedString(fromMarkdownText text: String) -> AttributedString {
+    public func attributedString(fromMarkdownText text: String) -> NSAttributedString {
         let document = Document(parsing: text)
         
         #if DEBUG
