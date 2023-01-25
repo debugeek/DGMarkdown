@@ -14,6 +14,13 @@ class ViewController: NSViewController {
     @IBOutlet var editTextView: NSTextView!
     @IBOutlet var previewTextView: NSTextView!
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        editTextView.layoutManager?.allowsNonContiguousLayout = true
+        previewTextView.layoutManager?.allowsNonContiguousLayout = true
+    }
+    
 }
 
 extension ViewController: NSTextViewDelegate {

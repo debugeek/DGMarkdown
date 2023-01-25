@@ -55,14 +55,13 @@ extension Visitor: MarkupVisitor {
         string += defaultVisit(paragraph)
         string.appendLineBreak()
         string.appendBlankLine(withLineHeight: styleSheet.paragraph.lineBreakHeight)
-        string.appendLineBreak()
         return string
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> Result {
         let string = NSMutableAttributedString()
-        string.appendBlankLine(withLineHeight: styleSheet.softBreak.lineBreakHeight)
         string.appendLineBreak()
+        string.appendBlankLine(withLineHeight: styleSheet.softBreak.lineBreakHeight)
         return string
     }
     
@@ -98,16 +97,15 @@ extension Visitor: MarkupVisitor {
         } else {
             identifier = .plain
         }
-
+        
         let heading = NSMutableAttributedString()
-        heading += "\u{00A0}\n"
+        heading.appendLineBreak()
         heading.setAttributes([.font: styleSheet.codeBlock.font as Any,
                                .backgroundColor: styleSheet.codeBlock.backgroundColor as Any,
                                .paragraphStyle: styleSheet.codeBlock.paragraphStyle], range: NSRange(0..<heading.length))
 
         let tailing = NSMutableAttributedString()
         tailing.appendBlankLine(withLineHeight: 0)
-        tailing.appendLineBreak()
         tailing.setAttributes([.font: styleSheet.codeBlock.font as Any,
                                .backgroundColor: styleSheet.codeBlock.backgroundColor as Any,
                                .paragraphStyle: styleSheet.codeBlock.paragraphStyle], range: NSRange(0..<heading.length))
