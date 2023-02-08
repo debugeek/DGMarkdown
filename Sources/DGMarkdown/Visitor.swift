@@ -114,6 +114,7 @@ extension Visitor: MarkupVisitor {
         code += DGSyntaxHighlighter(identifier: identifier, styleSheet: { () -> DGSyntaxHighlighterStyleSheet in
             var styleSheet = DGSyntaxHighlighterStyleSheet()
             styleSheet.text.font = self.styleSheet.codeBlock.font
+            styleSheet.text.foregroundColor = self.styleSheet.codeBlock.foregroundColor
             styleSheet.keyword.font = self.styleSheet.codeBlock.font
             styleSheet.string.font = self.styleSheet.codeBlock.font
             styleSheet.comment.font = self.styleSheet.codeBlock.font
@@ -160,14 +161,16 @@ extension Visitor: MarkupVisitor {
     mutating func visitEmphasis(_ emphasis: Emphasis) -> Result {
         let string = NSMutableAttributedString()
         string += defaultVisit(emphasis)
-        string.mergeAttributes([.font: styleSheet.italic.font as Any])
+        string.mergeAttributes([.font: styleSheet.italic.font as Any,
+                                .foregroundColor: styleSheet.italic.foregroundColor as Any])
         return string
     }
     
     mutating func visitStrong(_ strong: Strong) -> Result {
         let string = NSMutableAttributedString()
         string += defaultVisit(strong)
-        string.mergeAttributes([.font: styleSheet.strong.font as Any])
+        string.mergeAttributes([.font: styleSheet.strong.font as Any,
+                                .foregroundColor: styleSheet.strong.foregroundColor as Any])
         return string
     }
     
@@ -175,6 +178,7 @@ extension Visitor: MarkupVisitor {
         let string = NSMutableAttributedString()
         string += defaultVisit(strikethrough)
         string.mergeAttributes([.font: styleSheet.strikethrough.font as Any,
+                                .foregroundColor: styleSheet.strikethrough.foregroundColor as Any,
                                 .strikethroughStyle: 1])
         return string
     }
@@ -185,6 +189,8 @@ extension Visitor: MarkupVisitor {
         if let destination = link.destination, let link = URL(string: destination) {
             string.mergeAttributes([.link: link as Any])
         }
+        string.mergeAttributes([.font: styleSheet.link.font as Any])
+
         return string
     }
     
