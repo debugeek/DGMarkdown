@@ -134,7 +134,7 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            inlineCode = InlineCodeStyle(font: Font.systemFont(ofSize: 16),
+            inlineCode = InlineCodeStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
                                          paragraphStyle: paragraphStyle,
                                          foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                          backgroundColor: Color.color(withHex: 0x161616))
@@ -142,7 +142,7 @@ public struct DGMarkdownStyleSheet {
         
         do {
             let paragraphStyle = NSMutableParagraphStyle()
-            codeBlock = CodeBlockStyle(font: Font.systemFont(ofSize: 16),
+            codeBlock = CodeBlockStyle(font: Font.monospacedSystemFont(ofSize: 16, weight: .regular),
                                        paragraphStyle: paragraphStyle,
                                        foregroundColor: Color.color(withHex: 0xFFFFFF, alpha: 0.85),
                                        backgroundColor: Color.color(withHex: 0x161616),
