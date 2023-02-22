@@ -353,8 +353,9 @@ extension Visitor: MarkupVisitor {
         if let processImage = delegate?.processImage {
             let attachment = NSTextAttachment()
             processImage(url, image.title, attachment)
-            let attributedString = NSMutableAttributedString(attachment: attachment)
-            return attributedString
+            let string = NSMutableAttributedString(attachment: attachment)
+            string.mergeAttributes([.foregroundColor: styleSheet.text.foregroundColor as Any])
+            return string
         } else {
             guard let data = """
             <html>
@@ -375,12 +376,12 @@ extension Visitor: MarkupVisitor {
             options[.baseURL] = url
             #endif
 
-            guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
+            guard let string = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
                 return defaultVisit(image)
             }
 
-            attributedString.appendLineBreak()
-            return attributedString
+            string.appendLineBreak()
+            return string
         }
     }
     
@@ -398,12 +399,13 @@ extension Visitor: MarkupVisitor {
         var options = [NSAttributedString.DocumentReadingOptionKey: Any]()
         options[.documentType] = NSAttributedString.DocumentType.html
 
-        guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
+        guard let string = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
             return defaultVisit(html)
         }
 
-        attributedString.appendLineBreak()
-        return attributedString
+        string.mergeAttributes([.foregroundColor: styleSheet.text.foregroundColor as Any])
+        string.appendLineBreak()
+        return string
     }
 
 }

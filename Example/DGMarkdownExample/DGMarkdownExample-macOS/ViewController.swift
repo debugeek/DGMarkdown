@@ -37,7 +37,7 @@ extension ViewController: DGMarkdownDelegate {
 
     func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
         DispatchQueue.global().async {
-            if let image = NSImage(contentsOf: url) {
+            if let image = NSImage(contentsOf: url) ?? NSImage(systemSymbolName: "photo", accessibilityDescription: nil) {
                 attachment.image = image
                 attachment.bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
                 DispatchQueue.main.sync {
