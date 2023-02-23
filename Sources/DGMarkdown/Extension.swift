@@ -32,6 +32,11 @@ extension NSMutableAttributedString {
                             font = font.withItalic()
                         }
                         addAttribute(key, value: font, range: range)
+                    } else if let newParagraphStyle = newValue as? NSMutableParagraphStyle, let oldParagraphStyle = oldValue as? NSMutableParagraphStyle {
+                        let paragraphStyle = NSMutableParagraphStyle()
+                        paragraphStyle.headIndent = max(newParagraphStyle.headIndent, oldParagraphStyle.headIndent)
+                        paragraphStyle.firstLineHeadIndent = max(newParagraphStyle.firstLineHeadIndent, oldParagraphStyle.firstLineHeadIndent)
+                        addAttribute(key, value: paragraphStyle, range: range)
                     } else {
                         addAttribute(key, value: newValue, range: range)
                     }
@@ -53,6 +58,13 @@ extension NSMutableAttributedString {
         string.appendLineBreak()
         string.setAttributes([.paragraphStyle: paragraphStyle], range: NSRange(0..<string.length))
         self += string
+    }
+    
+    func indent(for offset: CGFloat) {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.headIndent = offset
+        paragraphStyle.firstLineHeadIndent = offset
+        mergeAttributes([.paragraphStyle: paragraphStyle])
     }
     
     static func += (lhs: NSMutableAttributedString, rhs: NSAttributedString) {

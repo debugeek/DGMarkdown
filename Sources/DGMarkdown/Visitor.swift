@@ -28,8 +28,8 @@ struct Visitor {
         self.delegate = delegate
     }
     
-    private var blockQuoteDepth = 0
-    private var listItemDepth = 0
+    private var indentOffset: CGFloat = 0
+    private var indentLevel = 0
     
 }
 
@@ -194,10 +194,33 @@ extension Visitor: MarkupVisitor {
         return string
     }
     
-    mutating func visitListItem(_ listItem: ListItem) -> Result {
-        listItemDepth += 1
-        defer { listItemDepth -= 1 }
+    mutating func visitOrderedList(_ orderedList: OrderedList) -> Result {
+        indentOffset += Indent.orderedList.offset
+        indentLevel += 1
         
+        let string = defaultVisit(orderedList)
+        string.indent(for: indentOffset)
+        
+        indentOffset -= Indent.orderedList.offset
+        indentLevel -= 1
+        
+        return string
+    }
+    
+    mutating func visitUnorderedList(_ unorderedList: UnorderedList) -> Result {
+        indentOffset += Indent.unorderedList.offset
+        indentLevel += 1
+        
+        let string = defaultVisit(unorderedList)
+        string.indent(for: indentOffset)
+        
+        indentOffset -= Indent.unorderedList.offset
+        indentLevel -= 1
+        
+        return string
+    }
+    
+    mutating func visitListItem(_ listItem: ListItem) -> Result {
         let prefix: String
         if let checkbox = listItem.checkbox {
             if checkbox == .checked {
@@ -208,7 +231,7 @@ extension Visitor: MarkupVisitor {
         } else if listItem.parent is OrderedList {
             prefix = "\(listItem.indexInParent + 1)."
         } else {
-            switch listItemDepth {
+            switch indentLevel {
             case 1: prefix = "•"
             case 2: prefix = "•"
             case 3: prefix = "⁃"
@@ -217,7 +240,6 @@ extension Visitor: MarkupVisitor {
         }
         
         let string = NSMutableAttributedString()
-        string += String(repeating: " ", count: 2*listItemDepth)
         string += prefix
         string += " "
         string += defaultVisit(listItem)
@@ -288,58 +310,18 @@ extension Visitor: MarkupVisitor {
     }
 
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> Result {
-        blockQuoteDepth += 1
-        defer { blockQuoteDepth -= 1 }
+        indentOffset += Indent.blockQuote.offset
+        indentLevel += 1
 
         let string = defaultVisit(blockQuote)
         string.mergeAttributes([.font: styleSheet.blockQuote.font as Any,
                                 .foregroundColor: styleSheet.blockQuote.foregroundColor as Any,
-                                .backgroundColor: styleSheet.blockQuote.backgroundColor as Any])
-
-        guard let paragraphStyle = styleSheet.blockQuote.paragraphStyle.mutableCopy() as? NSMutableParagraphStyle else { return string }
-
-
-        let indent = CGFloat(blockQuoteDepth)*20
-        paragraphStyle.tabStops = [NSTextTab(textAlignment: .left, location: indent, options: [:])]
-        paragraphStyle.firstLineHeadIndent = indent
-        paragraphStyle.headIndent = indent
-
-        var indentedRanges = [NSRange]()
-        string.enumerateAttribute(.blockQuoteIndented, in: NSRange(0..<string.length)) { value, range, _ in
-            guard value != nil else { return }
-            indentedRanges.append(range)
-        }
+                                .backgroundColor: styleSheet.blockQuote.backgroundColor as Any,
+                                .paragraphStyle: styleSheet.blockQuote.paragraphStyle])
+        string.indent(for: indentOffset)
         
-        var unindentedRanges: [NSRange] = [NSRange(0..<string.length)]
-        repeat {
-            var matched = false
-
-            for indentedRange in indentedRanges {
-                for (index, unindentedRange) in unindentedRanges.enumerated() {
-                    guard indentedRange.intersection(unindentedRange) != nil else {
-                        continue
-                    }
-
-                    unindentedRanges.remove(at: index)
-                    unindentedRanges.append(NSRange(location: min(unindentedRange.lowerBound, indentedRange.lowerBound),
-                                                   length: abs(unindentedRange.lowerBound - indentedRange.lowerBound)))
-                    unindentedRanges.append(NSRange(location: min(unindentedRange.upperBound, indentedRange.upperBound),
-                                                   length: abs(unindentedRange.upperBound - indentedRange.upperBound)))
-
-                    matched = true
-                    break
-                }
-            }
-
-            if !matched {
-                break
-            }
-        } while unindentedRanges.count > 0
-
-        for unindentedRange in unindentedRanges {
-            string.addAttribute(.paragraphStyle, value: paragraphStyle, range: unindentedRange)
-            string.addAttribute(.blockQuoteIndented, value: true, range: unindentedRange)
-        }
+        indentOffset -= Indent.blockQuote.offset
+        indentLevel -= 1
         
         return string
     }
@@ -410,6 +392,16 @@ extension Visitor: MarkupVisitor {
 
 }
 
-extension NSAttributedString.Key {
-    static let blockQuoteIndented = NSAttributedString.Key(rawValue: "blockQuoteIndented")
+enum Indent {
+    case orderedList, unorderedList, blockQuote
+    var offset: CGFloat {
+        switch self {
+            case .orderedList:
+                return 15
+            case .unorderedList:
+                return 15
+            case .blockQuote:
+                return 20
+        }
+    }
 }
