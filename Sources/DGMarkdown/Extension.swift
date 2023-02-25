@@ -15,41 +15,44 @@ import UIKit
 #endif
 
 extension NSMutableAttributedString {
-
-    func mergeAttributes(_ attrs: [NSAttributedString.Key: Any], range: NSRange? = nil) {
+    
+    @discardableResult
+    func merge(attrs: [NSAttributedString.Key: Any], range: NSRange? = nil, conflictsResolver: ((_ key: NSAttributedString.Key, _ oldValue: Any?, _ newValue: Any?) -> Any?)? = nil) -> Self  {
         let range = range ?? NSRange(0..<length)
         for (key, newValue) in attrs {
             enumerateAttribute(key, in: range) { oldValue, range, _ in
                 if oldValue == nil {
                     addAttribute(key, value: newValue, range: range)
+                } else if let resolvedValue = conflictsResolver?(key, oldValue, newValue) {
+                    addAttribute(key, value: resolvedValue, range: range)
                 } else {
-                    if let newFont = newValue as? Font, let oldFont = oldValue as? Font {
-                        var font = newFont.pointSize > oldFont.pointSize ? newFont : oldFont
-                        if newFont.isBold() || oldFont.isBold() {
-                            font = font.withBold()
-                        }
-                        if newFont.isItalic() || oldFont.isItalic() {
-                            font = font.withItalic()
-                        }
-                        addAttribute(key, value: font, range: range)
-                    } else if let newParagraphStyle = newValue as? NSMutableParagraphStyle, let oldParagraphStyle = oldValue as? NSMutableParagraphStyle {
-                        let paragraphStyle = NSMutableParagraphStyle()
-                        paragraphStyle.headIndent = max(newParagraphStyle.headIndent, oldParagraphStyle.headIndent)
-                        paragraphStyle.firstLineHeadIndent = max(newParagraphStyle.firstLineHeadIndent, oldParagraphStyle.firstLineHeadIndent)
-                        addAttribute(key, value: paragraphStyle, range: range)
-                    } else {
-                        addAttribute(key, value: newValue, range: range)
-                    }
+                    addAttribute(key, value: newValue, range: range)
                 }
             }
         }
+        return self
     }
     
-    func appendLineBreak() {
+    @discardableResult
+    func append(_ string: String) -> Self {
+        self += string
+        return self
+    }
+    
+    @discardableResult
+    func append(_ string: NSMutableAttributedString) -> Self {
+        self += string
+        return self
+    }
+    
+    @discardableResult
+    func appendLineBreak() -> Self  {
         self += "\n"
+        return self
     }
 
-    func appendBlankLine(withLineHeight lineHeight: CGFloat) {
+    @discardableResult
+    func appendBlankLine(withLineHeight lineHeight: CGFloat) -> Self  {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = lineHeight
         paragraphStyle.maximumLineHeight = lineHeight
@@ -58,13 +61,7 @@ extension NSMutableAttributedString {
         string.appendLineBreak()
         string.setAttributes([.paragraphStyle: paragraphStyle], range: NSRange(0..<string.length))
         self += string
-    }
-    
-    func indent(for offset: CGFloat) {
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.headIndent = offset
-        paragraphStyle.firstLineHeadIndent = offset
-        mergeAttributes([.paragraphStyle: paragraphStyle])
+        return self
     }
     
     static func += (lhs: NSMutableAttributedString, rhs: NSAttributedString) {
