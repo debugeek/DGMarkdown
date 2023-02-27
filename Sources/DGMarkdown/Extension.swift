@@ -57,7 +57,7 @@ extension NSMutableAttributedString {
         paragraphStyle.minimumLineHeight = lineHeight
         paragraphStyle.maximumLineHeight = lineHeight
         
-        let string = NSMutableAttributedString("")
+        let string = NSMutableAttributedString()
         string.appendLineBreak()
         string.setAttributes([.paragraphStyle: paragraphStyle], range: NSRange(0..<string.length))
         self += string

@@ -434,6 +434,10 @@ extension NSMutableAttributedString {
             let resolvedValue = NSMutableParagraphStyle()
             resolvedValue.headIndent = max(newValue.headIndent, oldValue.headIndent)
             resolvedValue.firstLineHeadIndent = max(newValue.firstLineHeadIndent, oldValue.firstLineHeadIndent)
+            resolvedValue.paragraphSpacing = max(newValue.paragraphSpacing, oldValue.paragraphSpacing)
+            resolvedValue.lineSpacing = max(newValue.lineSpacing, oldValue.lineSpacing)
+            resolvedValue.maximumLineHeight = max(newValue.maximumLineHeight, oldValue.maximumLineHeight)
+            resolvedValue.maximumLineHeight = max(newValue.maximumLineHeight, oldValue.maximumLineHeight)
             return resolvedValue
         }
     }
