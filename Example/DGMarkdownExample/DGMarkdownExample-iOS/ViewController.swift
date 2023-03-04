@@ -117,14 +117,14 @@ extension Markup {
 }
 ```
 """
-        let markdown = DGMarkdown(delegate: self)
-        let attributedString = markdown.attributedString(fromMarkdownText: text)
+        let markdown = DGMarkdown()
+        let attributedString = markdown.attributedString(fromMarkdownText: text, delegate: self)
         textView.attributedText = attributedString
     }
 
 }
 
-extension ViewController: DGMarkdownDelegate {
+extension ViewController: AttributedDelegate {
 
     func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
         DispatchQueue.global().async {

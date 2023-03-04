@@ -7,18 +7,18 @@
 //
 
 import Cocoa
+import WebKit
 import DGMarkdown
 
 class ViewController: NSViewController {
 
-    @IBOutlet var editTextView: NSTextView!
-    @IBOutlet var previewTextView: NSTextView!
+    @IBOutlet var textView: NSTextView!
+    @IBOutlet var webView: WKWebView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        editTextView.layoutManager?.allowsNonContiguousLayout = true
-        previewTextView.layoutManager?.allowsNonContiguousLayout = true
+        textView.layoutManager?.allowsNonContiguousLayout = true
     }
     
 }
@@ -26,27 +26,9 @@ class ViewController: NSViewController {
 extension ViewController: NSTextViewDelegate {
     
     func textDidChange(_ notification: Notification) {
-        let markdown = DGMarkdown(delegate: self, debugEnabled: true)
-        let attributedString = markdown.attributedString(fromMarkdownText: editTextView.string)
-        previewTextView.textStorage?.setAttributedString(attributedString)
+        let markdown = DGMarkdown()
+        let string = markdown.HTMLString(fromMarkdownText: textView.string)
+        webView.loadHTMLString(string, baseURL: nil)
     }
     
 }
-
-extension ViewController: DGMarkdownDelegate {
-
-    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
-        DispatchQueue.global().async {
-            if let image = NSImage(contentsOf: url) ?? NSImage(systemSymbolName: "photo", accessibilityDescription: nil) {
-                attachment.image = image
-                attachment.bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
-                DispatchQueue.main.sync {
-                    let characterRange = NSMakeRange(0, self.previewTextView.attributedString().length)
-                    self.previewTextView.layoutManager?.invalidateLayout(forCharacterRange: characterRange, actualCharacterRange: nil)
-                }
-            }
-        }
-    }
-
-}
-

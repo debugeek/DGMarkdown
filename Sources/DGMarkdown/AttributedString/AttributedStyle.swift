@@ -1,5 +1,5 @@
 //
-//  Style.swift
+//  AttributedStyle.swift
 //  DGMarkdown
 //
 //  Created by Xiao Jin on 2022/8/27.
@@ -20,7 +20,7 @@ public typealias Font = UIFont
 public typealias Color = UIColor
 #endif
 
-public struct DGMarkdownStyleSheet {
+public struct AttributedStyleSheet {
     
     #if canImport(Cocoa)
     private let textColor = Color.textColor

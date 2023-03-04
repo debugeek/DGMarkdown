@@ -16,14 +16,14 @@ import AppKit
 import UIKit
 #endif
 
-struct Visitor {
+struct AttributedVisitor {
     
-    let styleSheet: DGMarkdownStyleSheet
+    let styleSheet: AttributedStyleSheet
 
-    weak var delegate: DGMarkdownDelegate?
+    weak var delegate: AttributedDelegate?
 
-    init(delegate: DGMarkdownDelegate?,
-         styleSheet: DGMarkdownStyleSheet = DGMarkdownStyleSheet()) {
+    init(delegate: AttributedDelegate?,
+         styleSheet: AttributedStyleSheet = AttributedStyleSheet()) {
         self.styleSheet = styleSheet
         self.delegate = delegate
     }
@@ -33,7 +33,7 @@ struct Visitor {
     
 }
 
-extension Visitor: MarkupVisitor {
+extension AttributedVisitor: MarkupVisitor {
     
     typealias Result = NSMutableAttributedString
     

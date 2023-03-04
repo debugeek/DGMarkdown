@@ -9,35 +9,15 @@
 import Foundation
 import Markdown
 
-#if canImport(Cocoa)
-import AppKit
-#else
-import UIKit
-#endif
-
-public protocol DGMarkdownDelegate: AnyObject {
-
-    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment)
-    
-}
-
 public struct DGMarkdown {
 
-    public let debugEnabled: Bool
+    public var debugEnabled: Bool = false
 
-    public let styleSheet: DGMarkdownStyleSheet
+    public init() {}
 
-    private weak var delegate: DGMarkdownDelegate?
-
-    public init(delegate: DGMarkdownDelegate? = nil,
-                styleSheet: DGMarkdownStyleSheet = DGMarkdownStyleSheet(),
-                debugEnabled: Bool = false) {
-        self.delegate = delegate
-        self.styleSheet = styleSheet
-        self.debugEnabled = debugEnabled
-    }
-
-    public func attributedString(fromMarkdownText text: String) -> NSAttributedString {
+    public func attributedString(fromMarkdownText text: String,
+                                 styleSheet: AttributedStyleSheet = AttributedStyleSheet(),
+                                 delegate: AttributedDelegate? = nil) -> NSAttributedString {
         let document = Document(parsing: text)
         
         #if DEBUG
@@ -46,9 +26,23 @@ public struct DGMarkdown {
         }
         #endif
         
-        var visitor = Visitor(delegate: delegate, styleSheet: styleSheet)
+        var visitor = AttributedVisitor(delegate: delegate, styleSheet: styleSheet)
         let attributedString = visitor.visit(document)
         return attributedString
+    }
+
+    public func HTMLString(fromMarkdownText text: String) -> String {
+        let document = Document(parsing: text)
+
+        #if DEBUG
+        if debugEnabled {
+            print(document.debugDescription())
+        }
+        #endif
+
+        var visitor = HTMLVisitor()
+        let string = visitor.visit(document)
+        return string
     }
     
 }
