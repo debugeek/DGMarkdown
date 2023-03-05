@@ -47,7 +47,7 @@ struct HTMLVisitor: MarkupVisitor {
     
     mutating func visitHeading(_ heading: Heading) -> Result {
         return "<h\(heading.level)>"
-            .appending(heading.plainText)
+            .appending(defaultVisit(heading))
             .appending("</h\(heading.level)>")
     }
     
@@ -88,9 +88,14 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitListItem(_ listItem: ListItem) -> Result {
-        return "<li>"
-            .appending(defaultVisit(listItem))
-            .appending("</li>")
+        if let checkbox = listItem.checkbox {
+            return defaultVisit(listItem)
+                .replacingOccurrences(of: "<p>", with: "<p><input type=\"checkbox\" \(checkbox == .checked ? "checked" : "") />")
+        } else {
+            return "<li>"
+                .appending(defaultVisit(listItem))
+                .appending("</li>")
+        }
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> Result {
