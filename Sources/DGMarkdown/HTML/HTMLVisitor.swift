@@ -20,17 +20,17 @@ struct HTMLVisitor: MarkupVisitor {
     }
 
     mutating func visitParagraph(_ paragraph: Paragraph) -> Result {
-        return "<p>"
-            .appending(defaultVisit(paragraph))
-            .appending("</p>")
+        return HTMLElement(tag: "p")
+            .addContent(defaultVisit(paragraph))
+            .build()
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> Result {
-        return "<br>"
+        return HTMLElement(type: .void, tag: "br").build()
     }
     
     mutating func visitLineBreak(_ lineBreak: LineBreak) -> Result {
-        return "<br>"
+        return HTMLElement(type:.void, tag: "br").build()
     }
     
     mutating func visitText(_ text: Text) -> Result {
@@ -38,53 +38,58 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitInlineCode(_ inlineCode: InlineCode) -> Result {
-        return "<code>\(inlineCode.code)</code>"
+        return HTMLElement(tag: "code")
+            .addContent(inlineCode.code)
+            .build()
     }
     
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> Result {
-        return "<pre><code>\(codeBlock.code)</code></pre>"
+        return HTMLElement(tag: "pre")
+            .addContent(HTMLElement(tag: "code").addContent(codeBlock.code).build())
+            .build()
     }
     
     mutating func visitHeading(_ heading: Heading) -> Result {
-        return "<h\(heading.level)>"
-            .appending(defaultVisit(heading))
-            .appending("</h\(heading.level)>")
+        return HTMLElement(tag: "h\(heading.level)")
+            .addContent(defaultVisit(heading))
+            .build()
     }
     
     mutating func visitEmphasis(_ emphasis: Emphasis) -> Result {
-        return "<em>"
-            .appending(defaultVisit(emphasis))
-            .appending("</em>")
+        return HTMLElement(tag: "em")
+            .addContent(defaultVisit(emphasis))
+            .build()
     }
     
     mutating func visitStrong(_ strong: Strong) -> Result {
-        return "<strong>"
-            .appending(defaultVisit(strong))
-            .appending("</strong>")
+        return HTMLElement(tag: "strong")
+            .addContent(defaultVisit(strong))
+            .build()
     }
     
     mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> Result {
-        return "<s>"
-            .appending(defaultVisit(strikethrough))
-            .appending("</s>")
+        return HTMLElement(tag: "s")
+            .addContent(defaultVisit(strikethrough))
+            .build()
     }
     
     mutating func visitLink(_ link: Link) -> Result {
-        return "<a href=\"\(link.destination ?? "")\">"
-            .appending(link.plainText)
-            .appending("</a>")
+        return HTMLElement(tag: "a")
+            .addContent(link.plainText)
+            .addAttribute("href", link.destination ?? "")
+            .build()
     }
     
     mutating func visitOrderedList(_ orderedList: OrderedList) -> Result {
-        return "<ol>"
-            .appending(defaultVisit(orderedList))
-            .appending("</ol>")
+        return HTMLElement(tag: "ol")
+            .addContent(defaultVisit((orderedList)))
+            .build()
     }
     
     mutating func visitUnorderedList(_ unorderedList: UnorderedList) -> Result {
-        return "<ul>"
-            .appending(defaultVisit(unorderedList))
-            .appending("</ul>")
+        return HTMLElement(tag: "ul")
+            .addContent(defaultVisit((unorderedList)))
+            .build()
     }
     
     mutating func visitListItem(_ listItem: ListItem) -> Result {
@@ -92,46 +97,59 @@ struct HTMLVisitor: MarkupVisitor {
             return defaultVisit(listItem)
                 .replacingOccurrences(of: "<p>", with: "<p><input type=\"checkbox\" \(checkbox == .checked ? "checked" : "") />")
         } else {
-            return "<li>"
-                .appending(defaultVisit(listItem))
-                .appending("</li>")
+            return HTMLElement(tag: "li")
+                .addContent(defaultVisit((listItem)))
+                .build()
         }
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> Result {
-        return "<hr/>"
+        return HTMLElement(type: .void, tag: "hr").build()
     }
     
     mutating func visitTable(_ table: Table) -> Result {
-        return "<table>\(defaultVisit(table))</table>"
+        return HTMLElement(tag: "table")
+            .addContent(defaultVisit((table)))
+            .build()
     }
     
     mutating func visitTableHead(_ tableHead: Table.Head) -> Result {
-        return "<thead>\(defaultVisit(tableHead))</thead>"
+        return HTMLElement(tag: "thead")
+            .addContent(defaultVisit((tableHead)))
+            .build()
             .replacingOccurrences(of: "<td>", with: "<th>")
             .replacingOccurrences(of: "</td>", with: "</th>")
     }
     
     mutating func visitTableBody(_ tableBody: Table.Body) -> Result {
-        return "<tbody>\(defaultVisit(tableBody))</tbody>"
+        return HTMLElement(tag: "tbody")
+            .addContent(defaultVisit((tableBody)))
+            .build()
     }
     
     mutating func visitTableRow(_ tableRow: Table.Row) -> Result {
-        return "<tr>\(defaultVisit(tableRow))</tr>"
+        return HTMLElement(tag: "tr")
+            .addContent(defaultVisit(tableRow))
+            .build()
     }
     
     mutating func visitTableCell(_ tableCell: Table.Cell) -> Result {
-        return "<td>\(defaultVisit(tableCell))</td>"
+        return HTMLElement(tag: "td")
+            .addContent(defaultVisit((tableCell)))
+            .build()
     }
     
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> Result {
-        return "<blockquote>"
-            .appending(defaultVisit(blockQuote))
-            .appending("</blockquote>")
+        return HTMLElement(tag: "blockquote")
+            .addContent(defaultVisit((blockQuote)))
+            .build()
     }
     
     mutating func visitImage(_ image: Image) -> Result {
-        return "<img src=\"\(image.source ?? "")\" alt=\"\(defaultVisit(image))\" />"
+        return HTMLElement(type: .void, tag: "img")
+            .addAttribute("src", image.source ?? "")
+            .addAttribute("alt", defaultVisit(image))
+            .build()
     }
     
     mutating func visitHTMLBlock(_ html: HTMLBlock) -> Result {
