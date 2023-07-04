@@ -26,26 +26,35 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitSoftBreak(_ softBreak: SoftBreak) -> Result {
-        return HTMLElement(type: .void, tag: "br").build()
+        return HTMLElement(type: .void, tag: "br")
+            .build()
     }
     
     mutating func visitLineBreak(_ lineBreak: LineBreak) -> Result {
-        return HTMLElement(type:.void, tag: "br").build()
+        return HTMLElement(type:.void, tag: "br")
+            .build()
     }
     
     mutating func visitText(_ text: Text) -> Result {
-        return text.plainText
+        return HTMLTextElement()
+            .addContent(text.plainText)
+            .setBoundingAttributes(text)
+            .build()
     }
     
     mutating func visitInlineCode(_ inlineCode: InlineCode) -> Result {
         return HTMLElement(tag: "code")
             .addContent(inlineCode.code)
+            .setBoundingAttributes(inlineCode)
             .build()
     }
     
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> Result {
         return HTMLElement(tag: "pre")
-            .addContent(HTMLElement(tag: "code").addContent(codeBlock.code).build())
+            .addContent(HTMLElement(tag: "code")
+                .addContent(codeBlock.code)
+                .setBoundingAttributes(codeBlock)
+                .build())
             .build()
     }
     
@@ -76,6 +85,7 @@ struct HTMLVisitor: MarkupVisitor {
     mutating func visitLink(_ link: Link) -> Result {
         return HTMLElement(tag: "a")
             .addContent(link.plainText)
+            .setBoundingAttributes(link)
             .addAttribute("href", link.destination ?? "")
             .build()
     }
@@ -104,7 +114,9 @@ struct HTMLVisitor: MarkupVisitor {
     }
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> Result {
-        return HTMLElement(type: .void, tag: "hr").build()
+        return HTMLElement(type: .void, tag: "hr")
+            .setBoundingAttributes(thematicBreak)
+            .build()
     }
     
     mutating func visitTable(_ table: Table) -> Result {
@@ -148,7 +160,7 @@ struct HTMLVisitor: MarkupVisitor {
     mutating func visitImage(_ image: Image) -> Result {
         return HTMLElement(type: .void, tag: "img")
             .addAttribute("src", image.source ?? "")
-            .addAttribute("alt", defaultVisit(image))
+            .setBoundingAttributes(image)
             .build()
     }
     

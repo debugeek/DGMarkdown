@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Markdown
 
 struct HTMLAttribute {
     let name: String
@@ -44,6 +45,15 @@ class HTMLElement {
         return self
     }
 
+    @discardableResult
+    func setBoundingAttributes(_ markup: Markup) -> Self {
+        if let range = markup.range {
+            self.addAttribute("begin-line", "\(range.lowerBound.line)")
+            self.addAttribute("end-line", "\(range.upperBound.line)")
+        }
+        return self
+    }
+
     func build() -> String {
         var element = ""
 
@@ -65,6 +75,14 @@ class HTMLElement {
         }
 
         return element
+    }
+
+}
+
+class HTMLTextElement: HTMLElement {
+
+    init() {
+        super.init(tag: "span")
     }
 
 }
