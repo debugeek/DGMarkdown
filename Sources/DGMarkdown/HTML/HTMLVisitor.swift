@@ -129,8 +129,8 @@ struct HTMLVisitor: MarkupVisitor {
         return HTMLElement(tag: "thead")
             .addContent(defaultVisit((tableHead)))
             .build()
-            .replacingOccurrences(of: "<td>", with: "<th>")
-            .replacingOccurrences(of: "</td>", with: "</th>")
+            .replacingOccurrences(of: "<td", with: "<th")
+            .replacingOccurrences(of: "</td", with: "</th")
     }
     
     mutating func visitTableBody(_ tableBody: Table.Body) -> Result {
@@ -146,7 +146,19 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitTableCell(_ tableCell: Table.Cell) -> Result {
+        let align: String
+        if let table = tableCell.parent?.parent?.parent as? Table ?? tableCell.parent?.parent as? Table,
+           let columnAlignment = table.columnAlignments[tableCell.indexInParent] {
+            switch columnAlignment {
+                case .left: align = "left"
+                case .center: align = "center"
+                case .right: align = "right"
+            }
+        } else {
+            align = "center"
+        }
         return HTMLElement(tag: "td")
+            .addAttribute("align", align)
             .addContent(defaultVisit((tableCell)))
             .build()
     }

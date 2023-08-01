@@ -15,22 +15,6 @@ public struct DGMarkdown {
 
     public init() {}
 
-    public func attributedString(fromMarkdownText text: String,
-                                 styleSheet: AttributedStyleSheet = AttributedStyleSheet(),
-                                 delegate: AttributedDelegate? = nil) -> NSAttributedString {
-        let document = Document(parsing: text)
-        
-        #if DEBUG
-        if debugEnabled {
-            print(document.debugDescription())
-        }
-        #endif
-        
-        var visitor = AttributedVisitor(delegate: delegate, styleSheet: styleSheet)
-        let attributedString = visitor.visit(document)
-        return attributedString
-    }
-
     public func HTMLString(fromMarkdownText text: String) -> String {
         let document = Document(parsing: text)
 
