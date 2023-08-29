@@ -13,6 +13,8 @@ struct HTMLVisitor: MarkupVisitor {
     
     typealias Result = String
     
+    let options: DGMarkdownOptions
+    
     mutating func defaultVisit(_ markup: Markup) -> Result {
         return markup.children
             .compactMap { visit($0) }
@@ -36,16 +38,16 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitText(_ text: Text) -> Result {
-        return HTMLTextElement()
+        return HTMLElement(tag: "span")
             .addContent(text.plainText)
-            .setBoundingAttributes(text)
+            .when(options.generatesLineRange) { $0.setBoundingAttributes(text) }
             .build()
     }
     
     mutating func visitInlineCode(_ inlineCode: InlineCode) -> Result {
         return HTMLElement(tag: "code")
             .addContent(inlineCode.code)
-            .setBoundingAttributes(inlineCode)
+            .when(options.generatesLineRange) { $0.setBoundingAttributes(inlineCode) }
             .build()
     }
     
@@ -53,7 +55,7 @@ struct HTMLVisitor: MarkupVisitor {
         return HTMLElement(tag: "pre")
             .addContent(HTMLElement(tag: "code")
                 .addContent(codeBlock.code)
-                .setBoundingAttributes(codeBlock)
+                .when(options.generatesLineRange) { $0.setBoundingAttributes(codeBlock) }
                 .build())
             .build()
     }
@@ -85,7 +87,7 @@ struct HTMLVisitor: MarkupVisitor {
     mutating func visitLink(_ link: Link) -> Result {
         return HTMLElement(tag: "a")
             .addContent(link.plainText)
-            .setBoundingAttributes(link)
+            .when(options.generatesLineRange) { $0.setBoundingAttributes(link) }
             .addAttribute("href", link.destination ?? "")
             .build()
     }
@@ -115,7 +117,7 @@ struct HTMLVisitor: MarkupVisitor {
 
     func visitThematicBreak(_ thematicBreak: ThematicBreak) -> Result {
         return HTMLElement(type: .void, tag: "hr")
-            .setBoundingAttributes(thematicBreak)
+            .when(options.generatesLineRange) { $0.setBoundingAttributes(thematicBreak) }
             .build()
     }
     
@@ -172,7 +174,7 @@ struct HTMLVisitor: MarkupVisitor {
     mutating func visitImage(_ image: Image) -> Result {
         return HTMLElement(type: .void, tag: "img")
             .addAttribute("src", image.source ?? "")
-            .setBoundingAttributes(image)
+            .when(options.generatesLineRange) { $0.setBoundingAttributes(image) }
             .build()
     }
     

@@ -9,13 +9,18 @@
 import Foundation
 import Markdown
 
+public struct DGMarkdownOptions {
+    public let generatesLineRange: Bool
+    public static let `default` = DGMarkdownOptions(generatesLineRange: false)
+}
+
 public struct DGMarkdown {
 
     public var debugEnabled: Bool = false
 
     public init() {}
 
-    public func HTMLString(fromMarkdownText text: String) -> String {
+    public func HTMLString(fromMarkdownText text: String, options: DGMarkdownOptions = .default) -> String {
         let document = Document(parsing: text)
 
         #if DEBUG
@@ -24,7 +29,7 @@ public struct DGMarkdown {
         }
         #endif
 
-        var visitor = HTMLVisitor()
+        var visitor = HTMLVisitor(options: options)
         let string = visitor.visit(document)
         return string
     }

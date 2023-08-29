@@ -77,12 +77,11 @@ class HTMLElement {
         return element
     }
 
-}
-
-class HTMLTextElement: HTMLElement {
-
-    init() {
-        super.init(tag: "span")
+    func when(_ condition: Bool, _ block: ((HTMLElement) -> Void)) -> Self {
+        if condition {
+            block(self)
+        }
+        return self
     }
-
+    
 }
