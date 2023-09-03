@@ -10,7 +10,7 @@ import Foundation
 import Markdown
 
 public struct DGMarkdownOptions {
-    public let generatesLineRange: Bool
+    public var generatesLineRange: Bool
     public static let `default` = DGMarkdownOptions(generatesLineRange: false)
 }
 
