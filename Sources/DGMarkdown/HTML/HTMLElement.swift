@@ -40,8 +40,17 @@ class HTMLElement {
     }
 
     @discardableResult
-    func addContent(_ content: String) -> Self {
-        self.content.append(content)
+    func addContent(_ content: String, encode: Bool = false) -> Self {
+        if encode {
+            self.content.append(content
+                .replacingOccurrences(of: "&", with: "&amp;")
+                .replacingOccurrences(of: "<", with: "&lt;")
+                .replacingOccurrences(of: ">", with: "&gt;")
+                .replacingOccurrences(of: "'", with: "&apos;")
+                .replacingOccurrences(of: "\"", with: "&quot;"))
+        } else {
+            self.content.append(content)
+        }
         return self
     }
 

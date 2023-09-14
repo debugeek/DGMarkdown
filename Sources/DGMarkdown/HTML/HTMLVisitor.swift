@@ -46,7 +46,7 @@ struct HTMLVisitor: MarkupVisitor {
     
     mutating func visitInlineCode(_ inlineCode: InlineCode) -> Result {
         return HTMLElement(tag: "code")
-            .addContent(inlineCode.code)
+            .addContent(inlineCode.code, encode: true)
             .when(options.generatesLineRange) { $0.setBoundingAttributes(inlineCode) }
             .build()
     }
@@ -54,7 +54,7 @@ struct HTMLVisitor: MarkupVisitor {
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> Result {
         return HTMLElement(tag: "pre")
             .addContent(HTMLElement(tag: "code")
-                .addContent(codeBlock.code)
+                .addContent(codeBlock.code, encode: true)
                 .when(options.generatesLineRange) { $0.setBoundingAttributes(codeBlock) }
                 .build())
             .build()
