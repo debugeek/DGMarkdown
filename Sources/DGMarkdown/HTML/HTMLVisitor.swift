@@ -52,9 +52,11 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> Result {
+        let language = codeBlock.language ?? ""
         return HTMLElement(tag: "pre")
             .addContent(HTMLElement(tag: "code")
                 .addContent(codeBlock.code, encode: true)
+                .when(!language.isEmpty) { $0.addAttribute("class", "language-\(language)") }
                 .when(options.generatesLineRange) { $0.setBoundingAttributes(codeBlock) }
                 .build())
             .build()
