@@ -88,7 +88,7 @@ struct HTMLVisitor: MarkupVisitor {
     
     mutating func visitLink(_ link: Link) -> Result {
         return HTMLElement(tag: "a")
-            .addContent(defaultVisit(link))
+            .addContent(link.title ?? defaultVisit(link))
             .when(options.generatesLineRange) { $0.setBoundingAttributes(link) }
             .addAttribute("href", link.destination ?? "")
             .build()
