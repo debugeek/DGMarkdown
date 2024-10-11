@@ -10,7 +10,7 @@ import Foundation
 import Markdown
 
 struct HTMLAttribute {
-    let name: String
+    let name: String?
     let value: String
 }
 
@@ -36,6 +36,12 @@ class HTMLElement {
     @discardableResult
     func addAttribute(_ name: String, _ value: String) -> Self {
         self.attributes.append(HTMLAttribute(name: name, value: value))
+        return self
+    }
+
+    @discardableResult
+    func addAttribute(_ value: String) -> Self {
+        self.attributes.append(HTMLAttribute(name: nil, value: value))
         return self
     }
 
@@ -69,7 +75,13 @@ class HTMLElement {
         if let tag = tag {
             element += "<\(tag)"
 
-            let attributes = attributes.map { "\($0.name)='\($0.value)'" }.joined(separator: " ")
+            let attributes = attributes.map {
+                if let name = $0.name {
+                    return "\(name)='\($0.value)'"
+                } else {
+                    return $0.value
+                }
+            }.joined(separator: " ")
             if attributes.count > 0 {
                 element += " \(attributes)"
             }

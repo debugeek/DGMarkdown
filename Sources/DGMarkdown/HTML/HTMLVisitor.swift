@@ -108,8 +108,14 @@ struct HTMLVisitor: MarkupVisitor {
     
     mutating func visitListItem(_ listItem: ListItem) -> Result {
         if let checkbox = listItem.checkbox {
+            let input = HTMLElement(type: .void, tag: "input")
+                .addContent(defaultVisit(listItem))
+                .addAttribute("type", "checkbox")
+                .when(checkbox == .checked) { $0.addAttribute("checked") }
+                .when(options.generatesLineRange) { $0.setBoundingAttributes(listItem) }
+                .build()
             return defaultVisit(listItem)
-                .replacingOccurrences(of: "<p>", with: "<p><input type=\"checkbox\" \(checkbox == .checked ? "checked" : "") />")
+                .replacingOccurrences(of: "<p>", with: "<p>\(input)")
         } else {
             return HTMLElement(tag: "li")
                 .addContent(defaultVisit((listItem)))
