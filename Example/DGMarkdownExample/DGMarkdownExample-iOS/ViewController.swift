@@ -7,11 +7,12 @@
 //
 
 import UIKit
+import WebKit
 import DGMarkdown
 
 class ViewController: UIViewController {
 
-    @IBOutlet weak var textView: UITextView!
+    @IBOutlet weak var webView: WKWebView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,25 +119,8 @@ extension Markup {
 ```
 """
         let markdown = DGMarkdown()
-        let attributedString = markdown.attributedString(fromMarkdownText: text, delegate: self)
-        textView.attributedText = attributedString
-    }
-
-}
-
-extension ViewController: AttributedDelegate {
-
-    func processImage(withURL url: URL, title: String?, forAttachment attachment: NSTextAttachment) {
-        DispatchQueue.global().async {
-            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-                attachment.image = image
-                attachment.bounds = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
-                DispatchQueue.main.sync {
-                    let characterRange = NSMakeRange(0, self.textView.attributedText.length)
-                    self.textView.layoutManager.invalidateLayout(forCharacterRange: characterRange, actualCharacterRange: nil)
-                }
-            }
-        }
+        let html = markdown.html(from: text)
+        webView.loadHTMLString(html, baseURL: nil)
     }
 
 }
