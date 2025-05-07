@@ -20,8 +20,8 @@ public struct DGMarkdown {
 
     public init() {}
 
-    public func HTMLString(fromMarkdownText text: String, options: DGMarkdownOptions = .default) -> String {
-        let document = Document(parsing: text)
+    public func html(from markdown: String, options: DGMarkdownOptions = .default, imageModifier: ((String) -> String)? = nil) -> String {
+        let document = Document(parsing: markdown)
 
         #if DEBUG
         if debugEnabled {
@@ -30,8 +30,8 @@ public struct DGMarkdown {
         #endif
 
         var visitor = HTMLVisitor(options: options)
-        let string = visitor.visit(document)
-        return string
+        visitor.imageModifier = imageModifier
+        return visitor.visit(document)
     }
     
 }

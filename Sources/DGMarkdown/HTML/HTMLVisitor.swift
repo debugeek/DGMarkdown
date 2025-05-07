@@ -15,6 +15,8 @@ struct HTMLVisitor: MarkupVisitor {
     
     let options: DGMarkdownOptions
     
+    var imageModifier: ((String) -> String)?
+    
     mutating func defaultVisit(_ markup: Markup) -> Result {
         return markup.children
             .compactMap { visit($0) }
@@ -180,8 +182,12 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitImage(_ image: Image) -> Result {
+        var src = image.source ?? ""
+        if let imageModifier = imageModifier {
+            src = imageModifier(src)
+        }
         return HTMLElement(type: .void, tag: "img")
-            .addAttribute("src", image.source ?? "")
+            .addAttribute("src", src)
             .when(options.generatesLineRange) { $0.setBoundingAttributes(image) }
             .build()
     }

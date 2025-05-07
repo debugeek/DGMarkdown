@@ -27,7 +27,7 @@ extension ViewController: NSTextViewDelegate {
     
     func textDidChange(_ notification: Notification) {
         let markdown = DGMarkdown()
-        let string = markdown.HTMLString(fromMarkdownText: textView.string)
+        let string = markdown.html(from: textView.string)
         webView.loadHTMLString(string, baseURL: nil)
     }
     
