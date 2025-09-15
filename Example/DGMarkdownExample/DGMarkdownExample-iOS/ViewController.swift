@@ -118,9 +118,11 @@ extension Markup {
 }
 ```
 """
-        let markdown = DGMarkdown()
-        let html = markdown.html(from: text)
-        webView.loadHTMLString(html, baseURL: nil)
+        var markdown = DGMarkdown()
+        markdown.parse(text)
+        if let html = markdown.html() {
+            webView.loadHTMLString(html, baseURL: nil)
+        }
     }
 
 }

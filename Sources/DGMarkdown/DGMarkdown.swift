@@ -19,18 +19,38 @@ public struct DGMarkdown {
     public var debugEnabled: Bool = false
 
     public init() {}
-
-    public func html(from markdown: String, options: DGMarkdownOptions = .default, imageModifier: ((String) -> String)? = nil) -> String {
-        let document = Document(parsing: markdown)
-
-        #if DEBUG
-        if debugEnabled {
+    
+    private var document: Document?
+    public mutating func parse(_ text: String) {
+        document = Document(parsing: text)
+        
+#if DEBUG
+        if debugEnabled, let document = document {
             print(document.debugDescription())
         }
-        #endif
+#endif
+    }
 
+    public func html(_ options: DGMarkdownOptions = .default, imageModifier: ((String) -> String)? = nil) -> String? {
+        guard
+            let document = document
+        else {
+            return nil
+        }
+        
         var visitor = HTMLVisitor(options: options)
         visitor.imageModifier = imageModifier
+        return visitor.visit(document)
+    }
+    
+    public func tokens() -> [Token]? {
+        guard
+            let document = document
+        else {
+            return nil
+        }
+        
+        var visitor = TokenVisitor()
         return visitor.visit(document)
     }
     
