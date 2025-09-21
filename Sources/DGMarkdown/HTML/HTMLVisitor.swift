@@ -83,7 +83,7 @@ struct HTMLVisitor: MarkupVisitor {
     }
     
     mutating func visitStrikethrough(_ strikethrough: Strikethrough) -> Result {
-        return HTMLElement(tag: "s")
+        return HTMLElement(tag: "del")
             .addContent(defaultVisit(strikethrough))
             .build()
     }
