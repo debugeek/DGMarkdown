@@ -116,12 +116,21 @@ struct HTMLVisitor: MarkupVisitor {
                 .when(checkbox == .checked) { $0.addAttribute("checked") }
                 .when(options.generatesLineRange) { $0.setBoundingAttributes(listItem) }
                 .build()
-            return defaultVisit(listItem)
-                .replacingOccurrences(of: "<p>", with: "<p>\(input)")
+            let text = defaultVisit(listItem)
+                .replacingOccurrences(of: "<p>", with: "")
+                .replacingOccurrences(of: "</p>", with: "")
+            let label = HTMLElement(tag: "label")
+                .addContent(input + text)
+                .build()
+            return HTMLElement(tag: "div")
+                .addContent(label)
+                .build()
         } else {
             return HTMLElement(tag: "li")
                 .addContent(defaultVisit((listItem)))
                 .build()
+                .replacingOccurrences(of: "<p>", with: "")
+                .replacingOccurrences(of: "</p>", with: "")
         }
     }
 
