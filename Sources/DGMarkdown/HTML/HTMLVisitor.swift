@@ -24,6 +24,10 @@ struct HTMLVisitor: MarkupVisitor {
     }
 
     mutating func visitParagraph(_ paragraph: Paragraph) -> Result {
+        if let parent = paragraph.parent,
+           [BlockQuote.self, ListItem.self].contains(where: { $0 == type(of: parent) }) {
+            return defaultVisit(paragraph)
+        }
         return HTMLElement(tag: "p")
             .addContent(defaultVisit(paragraph))
             .build()
@@ -117,8 +121,6 @@ struct HTMLVisitor: MarkupVisitor {
                 .when(options.generatesLineRange) { $0.setBoundingAttributes(listItem) }
                 .build()
             let text = defaultVisit(listItem)
-                .replacingOccurrences(of: "<p>", with: "")
-                .replacingOccurrences(of: "</p>", with: "")
             let label = HTMLElement(tag: "label")
                 .addContent(input + text)
                 .build()
@@ -129,8 +131,6 @@ struct HTMLVisitor: MarkupVisitor {
             return HTMLElement(tag: "li")
                 .addContent(defaultVisit((listItem)))
                 .build()
-                .replacingOccurrences(of: "<p>", with: "")
-                .replacingOccurrences(of: "</p>", with: "")
         }
     }
 
